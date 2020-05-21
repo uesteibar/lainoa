@@ -3,7 +3,7 @@ package lexer
 import (
 	"testing"
 
-	"github.com/uesteibar/monkey/pkg/token"
+	"github.com/uesteibar/lainoa/pkg/token"
 	"gotest.tools/v3/assert"
 )
 

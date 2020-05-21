@@ -1,4 +1,4 @@
-module github.com/uesteibar/monkey
+module github.com/uesteibar/lainoa
 
 go 1.14
 

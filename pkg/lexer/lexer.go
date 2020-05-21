@@ -1,7 +1,7 @@
 package lexer
 
 import (
-	"github.com/uesteibar/monkey/pkg/token"
+	"github.com/uesteibar/lainoa/pkg/token"
 )
 
 type Lexer struct {
