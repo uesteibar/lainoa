@@ -12,7 +12,7 @@ func TestNextToken(t *testing.T) {
 		let ten = 10;
 		let five = 5;
 
-		let add(x, y) {
+		fun add(x, y) {
 			x + y;
 		};
 
@@ -35,7 +35,7 @@ func TestNextToken(t *testing.T) {
 		{token.INT, "5"},
 		{token.SEMICOLON, ";"},
 
-		{token.LET, "let"},
+		{token.FUNCTION, "fun"},
 		{token.IDENT, "add"},
 		{token.LPAREN, "("},
 		{token.IDENT, "x"},
