@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+    pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.14.3'
+
+      - name: Install all dependencies
+        run: go mod download
+
+      - name: Test building the CLI
+        run: make build
+
+      - name: Run tests
+        run: make test
