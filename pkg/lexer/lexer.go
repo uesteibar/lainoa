@@ -37,6 +37,12 @@ var symbols = map[byte]token.TokenType{
 	'{': token.LBRACE,
 	'}': token.RBRACE,
 	'+': token.PLUS,
+	'-': token.MINUS,
+	'*': token.ASTERISK,
+	'/': token.SLASH,
+	'!': token.BANG,
+	'<': token.LT,
+	'>': token.BT,
 }
 
 func (l *Lexer) NextToken() (t token.Token) {

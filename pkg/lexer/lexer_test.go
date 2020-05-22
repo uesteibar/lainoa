@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/uesteibar/lainoa/pkg/token"
-	"gotest.tools/v3/assert"
 )
 
 func TestNextToken(t *testing.T) {
@@ -17,6 +16,15 @@ func TestNextToken(t *testing.T) {
 		};
 
 		let result = add(ten, five);
+
+		!-/*5;
+		5 < 10 > 5;
+
+		if (5 < 10) {
+			return true;
+		} else {
+			return false;
+		}
 	`
 
 	tests := []struct {
@@ -60,14 +68,53 @@ func TestNextToken(t *testing.T) {
 		{token.IDENT, "five"},
 		{token.RPAREN, ")"},
 		{token.SEMICOLON, ";"},
+
+		{token.BANG, "!"},
+		{token.MINUS, "-"},
+		{token.SLASH, "/"},
+		{token.ASTERISK, "*"},
+		{token.INT, "5"},
+		{token.SEMICOLON, ";"},
+
+		{token.INT, "5"},
+		{token.LT, "<"},
+		{token.INT, "10"},
+		{token.BT, ">"},
+		{token.INT, "5"},
+		{token.SEMICOLON, ";"},
+
+		{token.IF, "if"},
+		{token.LPAREN, "("},
+		{token.INT, "5"},
+		{token.LT, "<"},
+		{token.INT, "10"},
+		{token.RPAREN, ")"},
+		{token.LBRACE, "{"},
+		{token.RETURN, "return"},
+		{token.TRUE, "true"},
+		{token.SEMICOLON, ";"},
+		{token.RBRACE, "}"},
+		{token.ELSE, "else"},
+		{token.LBRACE, "{"},
+		{token.RETURN, "return"},
+		{token.FALSE, "false"},
+		{token.SEMICOLON, ";"},
+		{token.RBRACE, "}"},
 	}
 
 	l := New(input)
 
-	for _, et := range tests {
+	for i, et := range tests {
 		tok := l.NextToken()
 
-		assert.Equal(t, et.expectedType, tok.Type)
-		assert.Equal(t, et.expectedLiteral, tok.Literal)
+		if tok.Type != et.expectedType {
+			t.Fatalf("tests[%d] - tokentype wrong. expected=%q, got=%q",
+				i, et.expectedType, tok.Type)
+		}
+
+		if tok.Literal != et.expectedLiteral {
+			t.Fatalf("tests[%d] - literal wrong. expected=%q, got=%q",
+				i, et.expectedLiteral, tok.Literal)
+		}
 	}
 }
