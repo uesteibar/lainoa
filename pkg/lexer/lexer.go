@@ -28,59 +28,39 @@ func (l *Lexer) readChar() {
 	}
 }
 
+var symbols = map[byte]token.TokenType{
+	'=': token.ASSIGN,
+	',': token.COMMA,
+	';': token.SEMICOLON,
+	'(': token.LPAREN,
+	')': token.RPAREN,
+	'{': token.LBRACE,
+	'}': token.RBRACE,
+	'+': token.PLUS,
+}
+
 func (l *Lexer) NextToken() (t token.Token) {
 	l.skipWhitespace()
 
-	switch l.ch {
-	case '=':
-		t = newToken(token.ASSIGN, l.ch)
+	if tokenType, exists := symbols[l.ch]; exists {
+		t = newToken(tokenType, l.ch)
 
 		l.readChar()
-	case ';':
-		t = newToken(token.SEMICOLON, l.ch)
-
-		l.readChar()
-	case '(':
-		t = newToken(token.LPAREN, l.ch)
-
-		l.readChar()
-	case ')':
-		t = newToken(token.RPAREN, l.ch)
-
-		l.readChar()
-	case '{':
-		t = newToken(token.LBRACE, l.ch)
-
-		l.readChar()
-	case '}':
-		t = newToken(token.RBRACE, l.ch)
-
-		l.readChar()
-	case ',':
-		t = newToken(token.COMMA, l.ch)
-
-		l.readChar()
-	case '+':
-		t = newToken(token.PLUS, l.ch)
-
-		l.readChar()
-	case 0:
+	} else if l.ch == 0 {
 		t.Literal = ""
 		t.Type = token.EOF
 
 		l.readChar()
-	default:
-		if isLetter(l.ch) {
-			t.Literal = l.readIdentifier()
-			t.Type = token.LookupIdentType(t.Literal)
-		} else if isDigit(l.ch) {
-			t.Type = token.INT
-			t.Literal = l.readNumber()
-		} else {
-			t = newToken(token.ILLEGAL, l.ch)
+	} else if isLetter(l.ch) {
+		t.Literal = l.readIdentifier()
+		t.Type = token.LookupIdentType(t.Literal)
+	} else if isDigit(l.ch) {
+		t.Type = token.INT
+		t.Literal = l.readNumber()
+	} else {
+		t = newToken(token.ILLEGAL, l.ch)
 
-			l.readChar()
-		}
+		l.readChar()
 	}
 
 	return t
