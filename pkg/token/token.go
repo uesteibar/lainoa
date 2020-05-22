@@ -24,6 +24,8 @@ const (
 	BANG     = "!"
 	LT       = "<"
 	BT       = ">"
+	EQ       = "=="
+	NOT_EQ   = "!="
 
 	// Delimiters
 	COMMA     = ","

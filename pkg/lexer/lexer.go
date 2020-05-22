@@ -28,45 +28,90 @@ func (l *Lexer) readChar() {
 	}
 }
 
-var symbols = map[byte]token.TokenType{
-	'=': token.ASSIGN,
-	',': token.COMMA,
-	';': token.SEMICOLON,
-	'(': token.LPAREN,
-	')': token.RPAREN,
-	'{': token.LBRACE,
-	'}': token.RBRACE,
-	'+': token.PLUS,
-	'-': token.MINUS,
-	'*': token.ASTERISK,
-	'/': token.SLASH,
-	'!': token.BANG,
-	'<': token.LT,
-	'>': token.BT,
+func (l *Lexer) peekNextChar() byte {
+	if l.readPosition >= len(l.input) {
+		return 0
+	}
+
+	return l.input[l.readPosition]
 }
 
 func (l *Lexer) NextToken() (t token.Token) {
 	l.skipWhitespace()
 
-	if tokenType, exists := symbols[l.ch]; exists {
-		t = newToken(tokenType, l.ch)
+	switch l.ch {
+	case '=':
+		if l.peekNextChar() == '=' {
+			l.readChar()
+			t.Literal = "=="
+			t.Type = token.EQ
+		} else {
+			t = newToken(token.ASSIGN, l.ch)
+		}
 
 		l.readChar()
-	} else if l.ch == 0 {
+	case '!':
+		if l.peekNextChar() == '=' {
+			l.readChar()
+			t.Literal = "!="
+			t.Type = token.NOT_EQ
+		} else {
+			t = newToken(token.BANG, l.ch)
+		}
+		l.readChar()
+	case ',':
+		t = newToken(token.COMMA, l.ch)
+		l.readChar()
+	case ';':
+		t = newToken(token.SEMICOLON, l.ch)
+		l.readChar()
+	case '(':
+		t = newToken(token.LPAREN, l.ch)
+		l.readChar()
+	case ')':
+		t = newToken(token.RPAREN, l.ch)
+		l.readChar()
+	case '{':
+		t = newToken(token.LBRACE, l.ch)
+		l.readChar()
+	case '}':
+		t = newToken(token.RBRACE, l.ch)
+		l.readChar()
+	case '+':
+		t = newToken(token.PLUS, l.ch)
+		l.readChar()
+	case '-':
+		t = newToken(token.MINUS, l.ch)
+		l.readChar()
+	case '*':
+		t = newToken(token.ASTERISK, l.ch)
+		l.readChar()
+	case '/':
+		t = newToken(token.SLASH, l.ch)
+		l.readChar()
+	case '<':
+		t = newToken(token.LT, l.ch)
+		l.readChar()
+	case '>':
+		t = newToken(token.BT, l.ch)
+		l.readChar()
+	case 0:
 		t.Literal = ""
 		t.Type = token.EOF
 
 		l.readChar()
-	} else if isLetter(l.ch) {
-		t.Literal = l.readIdentifier()
-		t.Type = token.LookupIdentType(t.Literal)
-	} else if isDigit(l.ch) {
-		t.Type = token.INT
-		t.Literal = l.readNumber()
-	} else {
-		t = newToken(token.ILLEGAL, l.ch)
+	default:
+		if isLetter(l.ch) {
+			t.Literal = l.readIdentifier()
+			t.Type = token.LookupIdentType(t.Literal)
+		} else if isDigit(l.ch) {
+			t.Type = token.INT
+			t.Literal = l.readNumber()
+		} else {
+			t = newToken(token.ILLEGAL, l.ch)
 
-		l.readChar()
+			l.readChar()
+		}
 	}
 
 	return t
