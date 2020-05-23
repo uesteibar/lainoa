@@ -1,5 +1,7 @@
 # Lainoa
 
+![ci](https://github.com/uesteibar/lainoa/workflows/ci/badge.svg?branch=master)
+
 Programming language built following the interpreterbook.com
 
 ## Running locally
