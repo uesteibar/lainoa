@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/uesteibar/lainoa/pkg/ast"
 	"github.com/uesteibar/lainoa/pkg/lexer"
@@ -29,6 +30,7 @@ func New(l *lexer.Lexer) *Parser {
 	p := &Parser{l: l}
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
+	p.registerPrefix(token.INT, p.parseInteger)
 
 	// Read the first two tokens, so curToken and peekToken are both set
 	p.nextToken()
@@ -135,6 +137,15 @@ func (p *Parser) parseIdentifier() ast.Expression {
 	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 }
 
+func (p *Parser) parseInteger() ast.Expression {
+	value, err := strconv.ParseInt(p.curToken.Literal, 0, 64)
+	if err != nil {
+		p.addError(fmt.Sprintf("Couldn't parse %q as integer", p.curToken.Literal))
+	}
+
+	return &ast.IntegerLiteral{Token: p.curToken, Value: value}
+}
+
 func (p *Parser) registerPrefix(tokenType token.TokenType, fn prefixParseFn) {
 	p.prefixParseFns[tokenType] = fn
 }
@@ -157,6 +168,10 @@ func (p *Parser) Errors() []string {
 }
 
 func (p *Parser) addPeekError(t token.TokenType) {
-	err := fmt.Sprintf("expected next token to be %s, got %s instead", t, p.peekToken.Type)
-	p.errors = append(p.errors, err)
+	msg := fmt.Sprintf("expected next token to be %s, got %s instead", t, p.peekToken.Type)
+	p.errors = append(p.errors, msg)
+}
+
+func (p *Parser) addError(msg string) {
+	p.errors = append(p.errors, msg)
 }
