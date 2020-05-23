@@ -38,8 +38,11 @@ func (p *Parser) ParseProgram() *ast.Program {
 	for p.curToken.Type != token.EOF {
 		var statement ast.Statement
 
-		if p.curToken.Type == token.LET {
+		switch p.curToken.Type {
+		case token.LET:
 			statement = p.parseLetStatement()
+		case token.RETURN:
+			statement = p.parseReturnStatement()
 		}
 
 		program.Statements = append(program.Statements, statement)
@@ -65,6 +68,16 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	if !p.ensurePeekIs(token.ASSIGN) {
 		return nil
 	}
+
+	for p.curToken.Type != token.SEMICOLON {
+		p.nextToken()
+	}
+
+	return stmt
+}
+
+func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
+	stmt := &ast.ReturnStatement{Token: p.curToken}
 
 	for p.curToken.Type != token.SEMICOLON {
 		p.nextToken()

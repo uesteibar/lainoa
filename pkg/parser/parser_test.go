@@ -47,3 +47,23 @@ func TestParseLetStatementError(t *testing.T) {
 	assert.Equal(t, "expected next token to be IDENT, got INT instead", errors[0])
 	assert.Equal(t, "expected next token to be =, got + instead", errors[1])
 }
+
+func assertReturnStatement(t *testing.T, s ast.Statement) {
+	assert.Equal(t, "return", s.TokenLiteral())
+	_, ok := s.(*ast.ReturnStatement)
+	assert.True(t, ok)
+}
+
+func TestParseReturnStatements(t *testing.T) {
+	l := lexer.New(`
+		return true;
+		return 1;
+	`)
+	p := New(l)
+	program := p.ParseProgram()
+
+	assert.Len(t, program.Statements, 2)
+
+	assertReturnStatement(t, program.Statements[0])
+	assertReturnStatement(t, program.Statements[1])
+}
