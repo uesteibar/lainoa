@@ -2,6 +2,7 @@ package ast
 
 import (
 	"bytes"
+	"strconv"
 
 	"github.com/uesteibar/lainoa/pkg/token"
 )
@@ -28,9 +29,9 @@ type Program struct {
 func (p *Program) TokenLiteral() string {
 	if len(p.Statements) > 0 {
 		return p.Statements[0].TokenLiteral()
-	} else {
-		return ""
 	}
+
+	return ""
 }
 
 func (p *Program) String() string {
@@ -122,7 +123,7 @@ type IntegerLiteral struct {
 
 func (i *IntegerLiteral) expressionNode()      {}
 func (i *IntegerLiteral) TokenLiteral() string { return i.Token.Literal }
-func (i *IntegerLiteral) String() string       { return string(i.Value) }
+func (i *IntegerLiteral) String() string       { return strconv.Itoa(int(i.Value)) }
 
 type PrefixExpression struct {
 	Token    token.Token

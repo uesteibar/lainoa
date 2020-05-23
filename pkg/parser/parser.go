@@ -85,6 +85,12 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 		return nil
 	}
 
+	// skip assignment
+	p.nextToken()
+
+	p.nextToken()
+	stmt.Value = p.parseExpression(LOWEST)
+
 	for p.curToken.Type != token.SEMICOLON {
 		p.nextToken()
 	}
@@ -94,6 +100,9 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 
 func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	stmt := &ast.ReturnStatement{Token: p.curToken}
+
+	p.nextToken()
+	stmt.Value = p.parseExpression(LOWEST)
 
 	for p.curToken.Type != token.SEMICOLON {
 		p.nextToken()
@@ -130,9 +139,7 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 		return nil
 	}
 
-	leftExp := prefix()
-
-	return leftExp
+	return prefix()
 }
 
 func (p *Parser) parseIdentifier() ast.Expression {
@@ -144,7 +151,6 @@ func (p *Parser) parseInteger() ast.Expression {
 	if err != nil {
 		p.addError(fmt.Sprintf("Couldn't parse %q as integer", p.curToken.Literal))
 	}
-
 	return &ast.IntegerLiteral{Token: p.curToken, Value: value}
 }
 

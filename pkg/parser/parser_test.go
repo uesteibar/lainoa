@@ -14,28 +14,31 @@ func assertNoErrors(t *testing.T, p *Parser) {
 	assert.Len(t, p.Errors(), 0)
 }
 
-func assertLetStatement(t *testing.T, s ast.Statement, name string) {
+func assertLetStatement(t *testing.T, s ast.Statement, name string, value string) {
 	assert.Equal(t, "let", s.TokenLiteral())
 
 	letStmt, ok := s.(*ast.LetStatement)
 	assert.True(t, ok)
 
 	assert.Equal(t, name, letStmt.Name.Value)
+	assert.EqualValues(t, value, letStmt.Value.String())
 }
 
 func TestParseLetStatements(t *testing.T) {
 	l := lexer.New(`
 		let x = 5;
 		let y = 10;
+		let z = -10;
 	`)
 	p := New(l)
 	program := p.ParseProgram()
 
 	assertNoErrors(t, p)
-	assert.Len(t, program.Statements, 2)
+	assert.Len(t, program.Statements, 3)
 
-	assertLetStatement(t, program.Statements[0], "x")
-	assertLetStatement(t, program.Statements[1], "y")
+	assertLetStatement(t, program.Statements[0], "x", "5")
+	assertLetStatement(t, program.Statements[1], "y", "10")
+	assertLetStatement(t, program.Statements[2], "z", "(-10)")
 }
 
 func TestParseLetStatementError(t *testing.T) {
@@ -129,13 +132,14 @@ func TestPrefixOperator(t *testing.T) {
 	l := lexer.New(`
 		-550;
 		!15;
+		return -5;
 	`)
 
 	p := New(l)
 	program := p.ParseProgram()
 
 	assertNoErrors(t, p)
-	assert.Len(t, program.Statements, 2)
+	assert.Len(t, program.Statements, 3)
 
 	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
 	assert.True(t, ok)
@@ -160,4 +164,12 @@ func TestPrefixOperator(t *testing.T) {
 	assert.EqualValues(t, "!", exp.Operator)
 
 	assertIntegerLiteral(t, exp.Right, 15)
+
+	ret, ok := program.Statements[2].(*ast.ReturnStatement)
+	assert.True(t, ok)
+
+	assert.EqualValues(t, token.RETURN, ret.Token.Type)
+
+	_, ok = ret.Value.(*ast.PrefixExpression)
+	assert.True(t, ok)
 }
