@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -97,6 +98,16 @@ func TestIdentifierExpression(t *testing.T) {
 	assert.EqualValues(t, token.IDENT, ident.Token.Type)
 }
 
+func assertIntegerLiteral(t *testing.T, il ast.Expression, expectedValue int64) {
+	integer, ok := il.(*ast.IntegerLiteral)
+	assert.True(t, ok)
+
+	assert.EqualValues(t, expectedValue, integer.Value)
+	assert.Equal(t, strconv.Itoa(int(expectedValue)), integer.Token.Literal)
+	assert.EqualValues(t, token.INT, integer.Token.Type)
+
+}
+
 func TestIntegerExpression(t *testing.T) {
 	l := lexer.New(`
 		550;
@@ -111,10 +122,42 @@ func TestIntegerExpression(t *testing.T) {
 	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
 	assert.True(t, ok)
 
-	integer, ok := stmt.Expression.(*ast.IntegerLiteral)
+	assertIntegerLiteral(t, stmt.Expression, 550)
+}
+
+func TestPrefixOperator(t *testing.T) {
+	l := lexer.New(`
+		-550;
+		!15;
+	`)
+
+	p := New(l)
+	program := p.ParseProgram()
+
+	assertNoErrors(t, p)
+	assert.Len(t, program.Statements, 2)
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
 	assert.True(t, ok)
 
-	assert.EqualValues(t, 550, integer.Value)
-	assert.Equal(t, "550", integer.Token.Literal)
-	assert.EqualValues(t, token.INT, integer.Token.Type)
+	exp, ok := stmt.Expression.(*ast.PrefixExpression)
+	assert.True(t, ok)
+
+	assert.EqualValues(t, token.MINUS, exp.Token.Type)
+	assert.Equal(t, "-", exp.Token.Literal)
+	assert.EqualValues(t, "-", exp.Operator)
+
+	assertIntegerLiteral(t, exp.Right, 550)
+
+	stmt, ok = program.Statements[1].(*ast.ExpressionStatement)
+	assert.True(t, ok)
+
+	exp, ok = stmt.Expression.(*ast.PrefixExpression)
+	assert.True(t, ok)
+
+	assert.EqualValues(t, token.BANG, exp.Token.Type)
+	assert.Equal(t, "!", exp.Token.Literal)
+	assert.EqualValues(t, "!", exp.Operator)
+
+	assertIntegerLiteral(t, exp.Right, 15)
 }
