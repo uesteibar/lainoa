@@ -23,9 +23,9 @@ func (l *Lexer) readChar() {
 		l.ch = 0
 	} else {
 		l.ch = l.input[l.readPosition]
-		l.position = l.readPosition
-		l.readPosition++
 	}
+	l.position = l.readPosition
+	l.readPosition++
 }
 
 func (l *Lexer) peekNextChar() byte {
@@ -93,7 +93,7 @@ func (l *Lexer) NextToken() (t token.Token) {
 		t = newToken(token.LT, l.ch)
 		l.readChar()
 	case '>':
-		t = newToken(token.BT, l.ch)
+		t = newToken(token.GT, l.ch)
 		l.readChar()
 	case 0:
 		t.Literal = ""

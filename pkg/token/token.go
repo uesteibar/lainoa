@@ -23,7 +23,7 @@ const (
 	SLASH    = "/"
 	BANG     = "!"
 	LT       = "<"
-	BT       = ">"
+	GT       = ">"
 	EQ       = "=="
 	NOT_EQ   = "!="
 

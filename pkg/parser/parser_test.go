@@ -128,9 +128,10 @@ func TestIntegerExpression(t *testing.T) {
 	assertIntegerLiteral(t, stmt.Expression, 550)
 }
 
-func TestPrefixOperator(t *testing.T) {
+func TestPrefixExpressions(t *testing.T) {
 	l := lexer.New(`
 		-550;
+		+91;
 		!15;
 		return -5;
 	`)
@@ -139,7 +140,7 @@ func TestPrefixOperator(t *testing.T) {
 	program := p.ParseProgram()
 
 	assertNoErrors(t, p)
-	assert.Len(t, program.Statements, 3)
+	assert.Len(t, program.Statements, 4)
 
 	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
 	assert.True(t, ok)
@@ -159,17 +160,137 @@ func TestPrefixOperator(t *testing.T) {
 	exp, ok = stmt.Expression.(*ast.PrefixExpression)
 	assert.True(t, ok)
 
+	assert.EqualValues(t, token.PLUS, exp.Token.Type)
+	assert.Equal(t, "+", exp.Token.Literal)
+	assert.EqualValues(t, "+", exp.Operator)
+
+	assertIntegerLiteral(t, exp.Right, 91)
+
+	stmt, ok = program.Statements[2].(*ast.ExpressionStatement)
+	assert.True(t, ok)
+
+	exp, ok = stmt.Expression.(*ast.PrefixExpression)
+	assert.True(t, ok)
+
 	assert.EqualValues(t, token.BANG, exp.Token.Type)
 	assert.Equal(t, "!", exp.Token.Literal)
 	assert.EqualValues(t, "!", exp.Operator)
 
 	assertIntegerLiteral(t, exp.Right, 15)
 
-	ret, ok := program.Statements[2].(*ast.ReturnStatement)
+	ret, ok := program.Statements[3].(*ast.ReturnStatement)
 	assert.True(t, ok)
 
 	assert.EqualValues(t, token.RETURN, ret.Token.Type)
 
 	_, ok = ret.Value.(*ast.PrefixExpression)
 	assert.True(t, ok)
+}
+
+func TestInfixExpressions(t *testing.T) {
+	infixTests := []struct {
+		input      string
+		leftValue  int64
+		operator   string
+		rightValue int64
+	}{
+		{"5 + 5;", 5, "+", 5},
+		{"5 - 5;", 5, "-", 5},
+		{"5 * 5;", 5, "*", 5},
+		{"5 / 5;", 5, "/", 5},
+		{"5 > 5;", 5, ">", 5},
+		{"5 < 5;", 5, "<", 5},
+		{"5 == 5;", 5, "==", 5},
+		{"5 != 5;", 5, "!=", 5},
+	}
+
+	for _, tt := range infixTests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+
+		assertNoErrors(t, p)
+
+		assert.Len(t, program.Statements, 1)
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		assert.True(t, ok)
+
+		exp, ok := stmt.Expression.(*ast.InfixExpression)
+		assert.True(t, ok)
+
+		assertIntegerLiteral(t, exp.Left, tt.leftValue)
+		assert.Equal(t, exp.Operator, tt.operator)
+		assertIntegerLiteral(t, exp.Right, tt.rightValue)
+	}
+}
+
+func TestOperatorPrecedenceParsing(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			"-a * b",
+			"((-a) * b)",
+		},
+		{
+			"!-a;",
+			"(!(-a))",
+		},
+		{
+			"a + b + c;",
+			"((a + b) + c)",
+		},
+		{
+			"a + b - c;",
+			"((a + b) - c)",
+		},
+		{
+			"a * b * c;",
+			"((a * b) * c)",
+		},
+		{
+			"a * b / c;",
+			"((a * b) / c)",
+		},
+		{
+			"a + b / c;",
+			"(a + (b / c))",
+		},
+		{
+			"a + b * c + d / e - f;",
+			"(((a + (b * c)) + (d / e)) - f)",
+		},
+		{
+			"3 + 4; -5 * 5",
+			"(3 + 4)((-5) * 5)",
+		},
+		{
+			"3 + 4 - 5 * 5",
+			"((3 + 4) - (5 * 5))",
+		},
+		{
+			"5 > 4 == 3 < 4",
+			"((5 > 4) == (3 < 4))",
+		},
+		{
+			"5 < 4 != 3 > 4;",
+			"((5 < 4) != (3 > 4))",
+		},
+		{
+			"3 + 4 * 5 == 3 * 1 + 4 * 5;",
+			"((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
+		},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		assertNoErrors(t, p)
+
+		actual := program.String()
+		assert.Equal(t, tt.expected, actual)
+	}
 }

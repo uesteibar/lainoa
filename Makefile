@@ -11,4 +11,4 @@ install: ## Install the binary
 	go install ./...
 
 test: ## Run the tests
-	go test -v ./... -count=1
+	go test ./... -count=1
