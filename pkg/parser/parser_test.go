@@ -14,7 +14,7 @@ func assertNoErrors(t *testing.T, p *Parser) {
 	assert.Len(t, p.Errors(), 0)
 }
 
-func assertLetStatement(t *testing.T, s ast.Statement, name string, value string) {
+func assertLetStatement(t *testing.T, s ast.Statement, name string, value interface{}) {
 	assert.Equal(t, "let", s.TokenLiteral())
 
 	letStmt, ok := s.(*ast.LetStatement)
@@ -24,21 +24,74 @@ func assertLetStatement(t *testing.T, s ast.Statement, name string, value string
 	assert.EqualValues(t, value, letStmt.Value.String())
 }
 
+func assertIntegerLiteral(t *testing.T, il ast.Expression, expectedValue int64) {
+	integer, ok := il.(*ast.IntegerLiteral)
+	assert.True(t, ok)
+
+	assert.EqualValues(t, expectedValue, integer.Value)
+	assert.Equal(t, strconv.Itoa(int(expectedValue)), integer.Token.Literal)
+	assert.EqualValues(t, token.INT, integer.Token.Type)
+}
+
+func assertIdentifier(t *testing.T, exp ast.Expression, expectedValue string) {
+	ident, ok := exp.(*ast.Identifier)
+	assert.True(t, ok)
+
+	assert.Equal(t, expectedValue, ident.Value)
+	assert.Equal(t, expectedValue, ident.TokenLiteral())
+}
+
+func assertBoolean(t *testing.T, exp ast.Expression, expectedValue bool) {
+	ident, ok := exp.(*ast.Boolean)
+	assert.True(t, ok)
+
+	assert.Equal(t, expectedValue, ident.Value)
+}
+
+func assertLiteralExpression(t *testing.T, exp ast.Expression, expected interface{}) {
+	switch v := expected.(type) {
+	case int:
+		assertIntegerLiteral(t, exp, int64(v))
+	case int64:
+		assertIntegerLiteral(t, exp, v)
+	case string:
+		assertIdentifier(t, exp, v)
+	case bool:
+		assertBoolean(t, exp, v)
+	default:
+		t.Errorf("type of exp not handled. got=%T", exp)
+	}
+}
+
+func assertInfixExpression(
+	t *testing.T, exp ast.Expression, left interface{}, operator string, right interface{},
+) {
+	opExp, ok := exp.(*ast.InfixExpression)
+	assert.True(t, ok)
+
+	assertLiteralExpression(t, opExp.Left, left)
+	assert.Equal(t, operator, opExp.Operator)
+	assertLiteralExpression(t, opExp.Right, right)
+
+}
+
 func TestParseLetStatements(t *testing.T) {
 	l := lexer.New(`
 		let x = 5;
 		let y = 10;
 		let z = -10;
+		let w = true;
 	`)
 	p := New(l)
 	program := p.ParseProgram()
 
 	assertNoErrors(t, p)
-	assert.Len(t, program.Statements, 3)
+	assert.Len(t, program.Statements, 4)
 
 	assertLetStatement(t, program.Statements[0], "x", "5")
 	assertLetStatement(t, program.Statements[1], "y", "10")
 	assertLetStatement(t, program.Statements[2], "z", "(-10)")
+	assertLetStatement(t, program.Statements[3], "w", "true")
 }
 
 func TestParseLetStatementError(t *testing.T) {
@@ -58,12 +111,6 @@ func TestParseLetStatementError(t *testing.T) {
 	assert.Equal(t, "expected next token to be =, got + instead", errors[1])
 }
 
-func assertReturnStatement(t *testing.T, s ast.Statement) {
-	assert.Equal(t, "return", s.TokenLiteral())
-	_, ok := s.(*ast.ReturnStatement)
-	assert.True(t, ok)
-}
-
 func TestParseReturnStatements(t *testing.T) {
 	l := lexer.New(`
 		return true;
@@ -75,8 +122,16 @@ func TestParseReturnStatements(t *testing.T) {
 	assertNoErrors(t, p)
 	assert.Len(t, program.Statements, 2)
 
-	assertReturnStatement(t, program.Statements[0])
-	assertReturnStatement(t, program.Statements[1])
+	stmt, ok := program.Statements[0].(*ast.ReturnStatement)
+	assert.True(t, ok)
+	assert.Equal(t, "return", stmt.TokenLiteral())
+	assertBoolean(t, stmt.Value, true)
+
+	stmt, ok = program.Statements[1].(*ast.ReturnStatement)
+	assert.True(t, ok)
+	assert.Equal(t, "return", stmt.TokenLiteral())
+	assertIntegerLiteral(t, stmt.Value, 1)
+
 }
 
 func TestIdentifierExpression(t *testing.T) {
@@ -93,22 +148,7 @@ func TestIdentifierExpression(t *testing.T) {
 	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
 	assert.True(t, ok)
 
-	ident, ok := stmt.Expression.(*ast.Identifier)
-	assert.True(t, ok)
-
-	assert.Equal(t, "foo", ident.Value)
-	assert.Equal(t, "foo", ident.Token.Literal)
-	assert.EqualValues(t, token.IDENT, ident.Token.Type)
-}
-
-func assertIntegerLiteral(t *testing.T, il ast.Expression, expectedValue int64) {
-	integer, ok := il.(*ast.IntegerLiteral)
-	assert.True(t, ok)
-
-	assert.EqualValues(t, expectedValue, integer.Value)
-	assert.Equal(t, strconv.Itoa(int(expectedValue)), integer.Token.Literal)
-	assert.EqualValues(t, token.INT, integer.Token.Type)
-
+	assertLiteralExpression(t, stmt.Expression, "foo")
 }
 
 func TestIntegerExpression(t *testing.T) {
@@ -125,74 +165,43 @@ func TestIntegerExpression(t *testing.T) {
 	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
 	assert.True(t, ok)
 
-	assertIntegerLiteral(t, stmt.Expression, 550)
+	assertLiteralExpression(t, stmt.Expression, 550)
 }
 
 func TestPrefixExpressions(t *testing.T) {
-	l := lexer.New(`
-		-550;
-		+91;
-		!15;
-		return -5;
-	`)
+	prefixTests := []struct {
+		input    string
+		operator string
+		value    interface{}
+	}{
+		{"!5;", "!", 5},
+		{"-15;", "-", 15},
+		{"!true;", "!", true},
+	}
 
-	p := New(l)
-	program := p.ParseProgram()
+	for _, tt := range prefixTests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		assertNoErrors(t, p)
 
-	assertNoErrors(t, p)
-	assert.Len(t, program.Statements, 4)
+		assert.Len(t, program.Statements, 1)
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		assert.True(t, ok)
+		exp, ok := stmt.Expression.(*ast.PrefixExpression)
+		assert.True(t, ok)
 
-	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
-	assert.True(t, ok)
-
-	exp, ok := stmt.Expression.(*ast.PrefixExpression)
-	assert.True(t, ok)
-
-	assert.EqualValues(t, token.MINUS, exp.Token.Type)
-	assert.Equal(t, "-", exp.Token.Literal)
-	assert.EqualValues(t, "-", exp.Operator)
-
-	assertIntegerLiteral(t, exp.Right, 550)
-
-	stmt, ok = program.Statements[1].(*ast.ExpressionStatement)
-	assert.True(t, ok)
-
-	exp, ok = stmt.Expression.(*ast.PrefixExpression)
-	assert.True(t, ok)
-
-	assert.EqualValues(t, token.PLUS, exp.Token.Type)
-	assert.Equal(t, "+", exp.Token.Literal)
-	assert.EqualValues(t, "+", exp.Operator)
-
-	assertIntegerLiteral(t, exp.Right, 91)
-
-	stmt, ok = program.Statements[2].(*ast.ExpressionStatement)
-	assert.True(t, ok)
-
-	exp, ok = stmt.Expression.(*ast.PrefixExpression)
-	assert.True(t, ok)
-
-	assert.EqualValues(t, token.BANG, exp.Token.Type)
-	assert.Equal(t, "!", exp.Token.Literal)
-	assert.EqualValues(t, "!", exp.Operator)
-
-	assertIntegerLiteral(t, exp.Right, 15)
-
-	ret, ok := program.Statements[3].(*ast.ReturnStatement)
-	assert.True(t, ok)
-
-	assert.EqualValues(t, token.RETURN, ret.Token.Type)
-
-	_, ok = ret.Value.(*ast.PrefixExpression)
-	assert.True(t, ok)
+		assert.Equal(t, tt.operator, exp.Operator)
+		assertLiteralExpression(t, exp.Right, tt.value)
+	}
 }
 
 func TestInfixExpressions(t *testing.T) {
 	infixTests := []struct {
 		input      string
-		leftValue  int64
+		leftValue  interface{}
 		operator   string
-		rightValue int64
+		rightValue interface{}
 	}{
 		{"5 + 5;", 5, "+", 5},
 		{"5 - 5;", 5, "-", 5},
@@ -202,6 +211,8 @@ func TestInfixExpressions(t *testing.T) {
 		{"5 < 5;", 5, "<", 5},
 		{"5 == 5;", 5, "==", 5},
 		{"5 != 5;", 5, "!=", 5},
+		{"5 != true;", 5, "!=", true},
+		{"false != true;", false, "!=", true},
 	}
 
 	for _, tt := range infixTests {
@@ -216,12 +227,7 @@ func TestInfixExpressions(t *testing.T) {
 		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
 		assert.True(t, ok)
 
-		exp, ok := stmt.Expression.(*ast.InfixExpression)
-		assert.True(t, ok)
-
-		assertIntegerLiteral(t, exp.Left, tt.leftValue)
-		assert.Equal(t, exp.Operator, tt.operator)
-		assertIntegerLiteral(t, exp.Right, tt.rightValue)
+		assertInfixExpression(t, stmt.Expression, tt.leftValue, tt.operator, tt.rightValue)
 	}
 }
 
@@ -282,6 +288,10 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			"3 + 4 * 5 == 3 * 1 + 4 * 5;",
 			"((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
 		},
+		{
+			"3 > 9 == false",
+			"((3 > 9) == false)",
+		},
 	}
 
 	for _, tt := range tests {
@@ -293,4 +303,32 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 		actual := program.String()
 		assert.Equal(t, tt.expected, actual)
 	}
+}
+
+func TestBooleanExpression(t *testing.T) {
+	l := lexer.New(`
+		return true;
+		false;
+	`)
+	p := New(l)
+	program := p.ParseProgram()
+	assertNoErrors(t, p)
+
+	assert.Len(t, program.Statements, 2)
+
+	ret, ok := program.Statements[0].(*ast.ReturnStatement)
+	assert.True(t, ok)
+	boolean, ok := ret.Value.(*ast.Boolean)
+	assert.True(t, ok)
+
+	assert.EqualValues(t, token.TRUE, boolean.Token.Type)
+	assert.Equal(t, true, boolean.Value)
+
+	exp, ok := program.Statements[1].(*ast.ExpressionStatement)
+	assert.True(t, ok)
+	boolean, ok = exp.Expression.(*ast.Boolean)
+	assert.True(t, ok)
+
+	assert.EqualValues(t, token.FALSE, boolean.Token.Type)
+	assert.Equal(t, false, boolean.Value)
 }
