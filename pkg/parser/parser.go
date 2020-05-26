@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/uesteibar/lainoa/pkg/ast"
@@ -31,13 +32,17 @@ func New(l *lexer.Lexer) *Parser {
 
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
+
 	p.registerPrefix(token.INT, p.parseInteger)
+
 	p.registerPrefix(token.TRUE, p.parseBoolean)
 	p.registerPrefix(token.FALSE, p.parseBoolean)
 
 	p.registerPrefix(token.PLUS, p.parsePrefixExpression)
 	p.registerPrefix(token.MINUS, p.parsePrefixExpression)
 	p.registerPrefix(token.BANG, p.parsePrefixExpression)
+
+	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
@@ -87,22 +92,15 @@ func (p *Parser) ParseProgram() *ast.Program {
 func (p *Parser) parseLetStatement() *ast.LetStatement {
 	stmt := &ast.LetStatement{Token: p.curToken}
 
-	if !p.ensurePeekIs(token.IDENT) {
+	if !p.expectPeek(token.IDENT) {
 		return nil
 	}
-
-	// read next token (expects identifier)
-	p.nextToken()
 
 	stmt.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 
-	if !p.ensurePeekIs(token.ASSIGN) {
+	if !p.expectPeek(token.ASSIGN) {
 		return nil
 	}
-
-	// skip assignment
-	p.nextToken()
-
 	p.nextToken()
 	stmt.Value = p.parseExpression(LOWEST)
 
@@ -140,12 +138,13 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 func (p *Parser) parseExpression(precedence int) ast.Expression {
 	prefix, exists := p.prefixParseFns[p.curToken.Type]
 	if !exists {
+		p.addError(fmt.Sprintf("no prefix parse function found for %s", p.curToken.Literal))
 		return nil
 	}
 
 	leftExp := prefix()
 
-	for p.peekToken.Type != token.SEMICOLON && precedence < p.peekPrecedence() {
+	for !p.peekTokenIs(token.SEMICOLON) && precedence < p.peekPrecedence() {
 		infix, exists := p.infixParseFns[p.peekToken.Type]
 		if !exists {
 			return leftExp
@@ -174,6 +173,19 @@ func (p *Parser) parseInteger() ast.Expression {
 
 func (p *Parser) parseBoolean() ast.Expression {
 	return &ast.Boolean{Token: p.curToken, Value: p.curToken.Type == token.TRUE}
+}
+
+func (p *Parser) parseGroupedExpression() ast.Expression {
+	p.nextToken()
+
+	exp := p.parseExpression(LOWEST)
+	log.Println(exp)
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	return exp
 }
 
 func (p *Parser) parsePrefixExpression() ast.Expression {
@@ -248,6 +260,24 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 
 func (p *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) {
 	p.infixParseFns[tokenType] = fn
+}
+
+func (p *Parser) curTokenIs(t token.TokenType) bool {
+	return p.curToken.Type == t
+}
+
+func (p *Parser) peekTokenIs(t token.TokenType) bool {
+	return p.peekToken.Type == t
+}
+
+func (p *Parser) expectPeek(t token.TokenType) bool {
+	if p.peekTokenIs(t) {
+		p.nextToken()
+		return true
+	} else {
+		p.addPeekError(t)
+		return false
+	}
 }
 
 func (p *Parser) ensurePeekIs(t token.TokenType) bool {

@@ -305,6 +305,44 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 	}
 }
 
+func TestGroupedExpressionsParsing(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			"1 + (2 + 3) + 4",
+			"((1 + (2 + 3)) + 4)",
+		},
+		{
+			"(5 + 5) * 2",
+			"((5 + 5) * 2)",
+		},
+		{
+			"2 / (5 + 5)",
+			"(2 / (5 + 5))",
+		},
+		{
+			"-(5 + 5)",
+			"(-(5 + 5))",
+		},
+		{
+			"!(true == true)",
+			"(!(true == true))",
+		},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		assertNoErrors(t, p)
+
+		actual := program.String()
+		assert.Equal(t, tt.expected, actual)
+	}
+}
+
 func TestBooleanExpression(t *testing.T) {
 	l := lexer.New(`
 		return true;
