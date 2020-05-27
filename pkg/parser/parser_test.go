@@ -370,3 +370,65 @@ func TestBooleanExpression(t *testing.T) {
 	assert.EqualValues(t, token.FALSE, boolean.Token.Type)
 	assert.Equal(t, false, boolean.Value)
 }
+
+func TestIfExpression(t *testing.T) {
+	l := lexer.New(`if (x < y) { x }`)
+	p := New(l)
+	program := p.ParseProgram()
+	assertNoErrors(t, p)
+
+	assert.Len(t, program.Statements, 1)
+
+	exp, ok := program.Statements[0].(*ast.ExpressionStatement)
+	assert.True(t, ok)
+
+	ifexp, ok := exp.Expression.(*ast.IfExpression)
+	assert.True(t, ok)
+	assert.EqualValues(t, token.IF, ifexp.Token.Type)
+
+	cond, ok := ifexp.Condition.(*ast.InfixExpression)
+	assert.True(t, ok)
+	assertInfixExpression(t, cond, "x", token.LT, "y")
+
+	consBlock := ifexp.Consequence
+	assert.Len(t, consBlock.Statements, 1)
+
+	ident, ok := consBlock.Statements[0].(*ast.ExpressionStatement)
+	assertIdentifier(t, ident.Expression, "x")
+
+	assert.Equal(t, "if(x < y) x", ifexp.String())
+}
+
+func TestIfElseExpression(t *testing.T) {
+	l := lexer.New(`if (x < y) { x } else { y }`)
+	p := New(l)
+	program := p.ParseProgram()
+	assertNoErrors(t, p)
+
+	assert.Len(t, program.Statements, 1)
+
+	exp, ok := program.Statements[0].(*ast.ExpressionStatement)
+	assert.True(t, ok)
+
+	ifexp, ok := exp.Expression.(*ast.IfExpression)
+	assert.True(t, ok)
+	assert.EqualValues(t, token.IF, ifexp.Token.Type)
+
+	cond, ok := ifexp.Condition.(*ast.InfixExpression)
+	assert.True(t, ok)
+	assertInfixExpression(t, cond, "x", token.LT, "y")
+
+	consBlock := ifexp.Consequence
+	assert.Len(t, consBlock.Statements, 1)
+
+	ident, ok := consBlock.Statements[0].(*ast.ExpressionStatement)
+	assertIdentifier(t, ident.Expression, "x")
+
+	altBlock := ifexp.Consequence
+	assert.Len(t, altBlock.Statements, 1)
+
+	altIdent, ok := altBlock.Statements[0].(*ast.ExpressionStatement)
+	assertIdentifier(t, altIdent.Expression, "x")
+
+	assert.Equal(t, "if(x < y) x else y", ifexp.String())
+}

@@ -64,6 +64,8 @@ func New(l *lexer.Lexer) *Parser {
 
 	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)
 
+	p.registerPrefix(token.IF, p.parseIfExpression)
+
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
 	p.registerInfix(token.MINUS, p.parseInfixExpression)
@@ -90,23 +92,25 @@ func (p *Parser) ParseProgram() *ast.Program {
 	program := &ast.Program{}
 
 	for p.curToken.Type != token.EOF {
-		var statement ast.Statement
+		stmt := p.parseStatement()
 
-		switch p.curToken.Type {
-		case token.LET:
-			statement = p.parseLetStatement()
-		case token.RETURN:
-			statement = p.parseReturnStatement()
-		default:
-			statement = p.parseExpressionStatement()
-		}
-
-		program.Statements = append(program.Statements, statement)
+		program.Statements = append(program.Statements, stmt)
 
 		p.nextToken()
 	}
 
 	return program
+}
+
+func (p *Parser) parseStatement() ast.Statement {
+	switch p.curToken.Type {
+	case token.LET:
+		return p.parseLetStatement()
+	case token.RETURN:
+		return p.parseReturnStatement()
+	default:
+		return p.parseExpressionStatement()
+	}
 }
 
 func (p *Parser) registerPrefix(tokenType token.TokenType, fn prefixParseFn) {
