@@ -432,3 +432,70 @@ func TestIfElseExpression(t *testing.T) {
 
 	assert.Equal(t, "if(x < y) x else y", ifexp.String())
 }
+
+func TestFunctionExpression(t *testing.T) {
+	l := lexer.New(`
+		fun(a, b) {
+			a + b;
+		}
+	`)
+	p := New(l)
+	program := p.ParseProgram()
+	assertNoErrors(t, p)
+
+	assert.Len(t, program.Statements, 1)
+
+	exp, ok := program.Statements[0].(*ast.ExpressionStatement)
+	assert.True(t, ok)
+	fun, ok := exp.Expression.(*ast.FunctionLiteral)
+	assert.True(t, ok)
+
+	assert.Len(t, fun.Parameters, 2)
+	assertIdentifier(t, fun.Parameters[0], "a")
+	assertIdentifier(t, fun.Parameters[1], "b")
+
+	assert.Len(t, fun.Body.Statements, 1)
+
+	exp, ok = fun.Body.Statements[0].(*ast.ExpressionStatement)
+	assert.True(t, ok)
+	assertInfixExpression(t, exp.Expression, "a", "+", "b")
+}
+
+func TestFunctionErrors(t *testing.T) {
+	l := lexer.New(`fun(1, b) { a + b; }`)
+	p := New(l)
+	p.ParseProgram()
+
+	errors := p.Errors()
+	assert.Len(t, errors, 1)
+	assert.Equal(t,
+		"Function parameters can only be identifiers, found '1' instead",
+		errors[0],
+	)
+}
+
+func TestFunctionParameterParsing(t *testing.T) {
+	tests := []struct {
+		input          string
+		expectedParams []string
+	}{
+		{input: "fun() {};", expectedParams: []string{}},
+		{input: "fun(x) {};", expectedParams: []string{"x"}},
+		{input: "fun(x, y, z) {};", expectedParams: []string{"x", "y", "z"}},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		assertNoErrors(t, p)
+
+		stmt := program.Statements[0].(*ast.ExpressionStatement)
+		fun := stmt.Expression.(*ast.FunctionLiteral)
+		assert.Len(t, fun.Parameters, len(tt.expectedParams))
+
+		for i, ident := range tt.expectedParams {
+			assertLiteralExpression(t, fun.Parameters[i], ident)
+		}
+	}
+}
