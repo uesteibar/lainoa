@@ -292,6 +292,18 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			"3 > 9 == false",
 			"((3 > 9) == false)",
 		},
+		{
+			"a + add(b * c) + d",
+			"((a + add((b * c))) + d)",
+		},
+		{
+			"add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+			"add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
+		},
+		{
+			"add(a + b + c * d / f + g)",
+			"add((((a + b) + ((c * d) / f)) + g))",
+		},
 	}
 
 	for _, tt := range tests {
@@ -498,4 +510,54 @@ func TestFunctionParameterParsing(t *testing.T) {
 			assertLiteralExpression(t, fun.Parameters[i], ident)
 		}
 	}
+}
+
+func TestCallExpressionParsing(t *testing.T) {
+	input := "add(1, 2 * 3, 4 + 5);"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	assertNoErrors(t, p)
+
+	assert.Len(t, program.Statements, 1)
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	assert.True(t, ok)
+
+	exp, ok := stmt.Expression.(*ast.CallExpression)
+	assert.True(t, ok)
+
+	assertIdentifier(t, exp.Function, "add")
+
+	assert.Len(t, exp.Arguments, 3)
+
+	assertLiteralExpression(t, exp.Arguments[0], 1)
+	assertInfixExpression(t, exp.Arguments[1], 2, "*", 3)
+	assertInfixExpression(t, exp.Arguments[2], 4, "+", 5)
+}
+
+func TestDirectCallExpressionParsing(t *testing.T) {
+	input := "fun(a, b) { a + b }(1, 2 * 3, 4 + 5);"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	assertNoErrors(t, p)
+
+	assert.Len(t, program.Statements, 1)
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	assert.True(t, ok)
+
+	exp, ok := stmt.Expression.(*ast.CallExpression)
+	assert.True(t, ok)
+
+	assert.Equal(t, "fun(a, b) (a + b)", exp.Function.String())
+
+	assert.Len(t, exp.Arguments, 3)
+
+	assertLiteralExpression(t, exp.Arguments[0], 1)
+	assertInfixExpression(t, exp.Arguments[1], 2, "*", 3)
+	assertInfixExpression(t, exp.Arguments[2], 4, "+", 5)
 }
