@@ -6,7 +6,7 @@ import (
 	"io"
 
 	"github.com/uesteibar/lainoa/pkg/lexer"
-	"github.com/uesteibar/lainoa/pkg/token"
+	"github.com/uesteibar/lainoa/pkg/parser"
 )
 
 const PROMPT = "⛅️ >> "
@@ -23,9 +23,17 @@ func Start(in io.Reader, out io.Writer) {
 
 		line := scanner.Text()
 		l := lexer.New(line)
+		p := parser.New(l)
+		program := p.ParseProgram()
 
-		for tok := l.NextToken(); tok.Type != token.EOF; tok = l.NextToken() {
-			fmt.Fprintf(out, "%+v\n", tok)
+		if len(p.Errors()) == 0 {
+			fmt.Fprintf(out, "%s\n", program)
+		} else {
+			fmt.Fprintln(out, "Oops! Something is wrong here:")
+			fmt.Fprintln(out, "  parser errors:")
+			for _, err := range p.Errors() {
+				fmt.Fprintf(out, "- %s\n", err)
+			}
 		}
 	}
 }
