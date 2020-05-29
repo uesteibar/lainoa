@@ -65,6 +65,10 @@ func evalInfix(infix *ast.InfixExpression) object.Object {
 		left := left.(*object.Integer)
 		right := right.(*object.Integer)
 		return evalIntegerInfixExpression(left, infix.Operator, right)
+	case infix.Operator == token.EQ:
+		return nativeBoolToBoolean(left == right)
+	case infix.Operator == token.NOT_EQ:
+		return nativeBoolToBoolean(left != right)
 	default:
 		return NULL
 	}
