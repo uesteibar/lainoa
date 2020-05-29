@@ -80,6 +80,14 @@ func evalIntegerInfixExpression(left *object.Integer, operator string, right *ob
 		return &object.Integer{Value: left.Value * right.Value}
 	case token.SLASH:
 		return &object.Integer{Value: left.Value / right.Value}
+	case token.LT:
+		return nativeBoolToBoolean(left.Value < right.Value)
+	case token.GT:
+		return nativeBoolToBoolean(left.Value > right.Value)
+	case token.EQ:
+		return nativeBoolToBoolean(left.Value == right.Value)
+	case token.NOT_EQ:
+		return nativeBoolToBoolean(left.Value != right.Value)
 	default:
 		return NULL
 	}
@@ -117,7 +125,11 @@ func evalMinusOperation(right object.Object) object.Object {
 }
 
 func evalBoolean(boolean *ast.Boolean) *object.Boolean {
-	if boolean.Value {
+	return nativeBoolToBoolean(boolean.Value)
+}
+
+func nativeBoolToBoolean(boolean bool) *object.Boolean {
+	if boolean {
 		return TRUE
 	}
 	return FALSE
