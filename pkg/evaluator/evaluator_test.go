@@ -58,7 +58,6 @@ func TestEvalIntegerExpression(t *testing.T) {
 
 	for _, tt := range tests {
 		evaluated := eval(tt.input)
-		log.Println(evaluated)
 		assertIntegerObject(t, evaluated, tt.expected)
 	}
 }
@@ -91,7 +90,6 @@ func TestEvalBooleanExpression(t *testing.T) {
 
 	for _, tt := range tests {
 		evaluated := eval(tt.input)
-		log.Println(evaluated)
 		assertBooleanObject(t, evaluated, tt.expected)
 	}
 }
@@ -111,7 +109,33 @@ func TestBangOperator(t *testing.T) {
 
 	for _, tt := range tests {
 		evaluated := eval(tt.input)
-		log.Println(evaluated)
 		assertBooleanObject(t, evaluated, tt.expected)
+	}
+}
+
+func TestIfElseExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{"if (true) { 10 }", 10},
+		{"if (false) { 10 }", nil},
+		{"if (1) { 10 }", 10},
+		{"if (1 < 2) { 10 }", 10},
+		{"if (1 > 2) { 10 }", nil},
+		{"if (1 > 2) { 10 } else { 20 }", 20},
+		{"if (1 < 2) { 10 } else { 20 }", 10},
+	}
+
+	for _, tt := range tests {
+		evaluated := eval(tt.input)
+		integer, ok := tt.expected.(int)
+		log.Println(tt)
+		log.Println(evaluated)
+		if ok {
+			assertIntegerObject(t, evaluated, int64(integer))
+		} else {
+			assert.Equal(t, NULL, evaluated)
+		}
 	}
 }
