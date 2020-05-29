@@ -24,6 +24,18 @@ Run the REPL:
 
 ```
 lainoa repl
+Hello uesteibar! This is the Lainoa programming language
 
-⛅️ >> 
+Go ahead and type some stuff!
+⛅️ >>
+```
+
+## Running with docker
+
+```
+> docker run -it uesteibar/lainoa repl
+Hello root! This is the Lainoa programming language
+
+Go ahead and type some stuff!
+⛅️ >>
 ```
