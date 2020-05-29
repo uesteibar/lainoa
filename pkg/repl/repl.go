@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/uesteibar/lainoa/pkg/evaluator"
 	"github.com/uesteibar/lainoa/pkg/lexer"
 	"github.com/uesteibar/lainoa/pkg/parser"
 )
@@ -26,14 +27,19 @@ func Start(in io.Reader, out io.Writer) {
 		p := parser.New(l)
 		program := p.ParseProgram()
 
-		if len(p.Errors()) == 0 {
-			fmt.Fprintf(out, "%s\n", program)
-		} else {
+		if len(p.Errors()) > 0 {
 			fmt.Fprintln(out, "Oops! Something is wrong here:")
 			fmt.Fprintln(out, "  parser errors:")
 			for _, err := range p.Errors() {
 				fmt.Fprintf(out, "- %s\n", err)
 			}
+		}
+
+		evaluated := evaluator.Eval(program)
+
+		if evaluated != nil {
+			io.WriteString(out, evaluated.Inspect())
+			io.WriteString(out, "\n")
 		}
 	}
 }
