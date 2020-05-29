@@ -10,5 +10,8 @@ build: ## Build binary
 install: ## Install the binary
 	go install ./...
 
+repl:
+	go run ./cmd/lainoa/main.go repl
+
 test: ## Run the tests
 	go test ./... -count=1
