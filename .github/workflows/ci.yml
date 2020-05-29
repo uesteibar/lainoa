@@ -31,3 +31,10 @@ jobs:
 
     - name: Run tests
       run: make test
+
+    - uses: docker/build-push-action@v1
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        repository: uesteibar/lainoa
+        tag_with_ref: true
