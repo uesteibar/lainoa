@@ -25,6 +25,13 @@ func assertIntegerObject(t *testing.T, obj object.Object, expected int64) {
 	assert.Equal(t, expected, integer.Value)
 }
 
+func assertBooleanObject(t *testing.T, obj object.Object, expected bool) {
+	integer, ok := obj.(*object.Boolean)
+	assert.True(t, ok)
+
+	assert.Equal(t, expected, integer.Value)
+}
+
 func TestEvalIntegerExpression(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -38,5 +45,21 @@ func TestEvalIntegerExpression(t *testing.T) {
 		evaluated := eval(tt.input)
 		log.Println(evaluated)
 		assertIntegerObject(t, evaluated, tt.expected)
+	}
+}
+
+func TestEvalBooleanExpression(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected bool
+	}{
+		{"true", true},
+		{"false", false},
+	}
+
+	for _, tt := range tests {
+		evaluated := eval(tt.input)
+		log.Println(evaluated)
+		assertBooleanObject(t, evaluated, tt.expected)
 	}
 }
