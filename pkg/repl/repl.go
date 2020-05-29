@@ -1,10 +1,9 @@
 package repl
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 
+	"github.com/chzyer/readline"
 	"github.com/uesteibar/lainoa/pkg/evaluator"
 	"github.com/uesteibar/lainoa/pkg/lexer"
 	"github.com/uesteibar/lainoa/pkg/parser"
@@ -12,34 +11,43 @@ import (
 
 const PROMPT = "⛅️ >> "
 
-func Start(in io.Reader, out io.Writer) {
-	scanner := bufio.NewScanner(in)
+func Start() {
+	l, err := readline.NewEx(&readline.Config{
+		Prompt:          PROMPT,
+		HistoryFile:     "/tmp/lainoa_repl_history.tmp",
+		InterruptPrompt: "^C",
+		EOFPrompt:       "exit",
+
+		HistorySearchFold: true,
+	})
+
+	if err != nil {
+		panic(err)
+	}
+	defer l.Close()
 
 	for {
-		fmt.Fprint(out, PROMPT)
-		scanned := scanner.Scan()
-		if !scanned {
+		line, err := l.Readline()
+		if err != nil {
 			return
 		}
 
-		line := scanner.Text()
 		l := lexer.New(line)
 		p := parser.New(l)
 		program := p.ParseProgram()
 
 		if len(p.Errors()) > 0 {
-			fmt.Fprintln(out, "Oops! Something is wrong here:")
-			fmt.Fprintln(out, "  parser errors:")
+			fmt.Println("Oops! Something is wrong here:")
+			fmt.Println("  parser errors:")
 			for _, err := range p.Errors() {
-				fmt.Fprintf(out, "- %s\n", err)
+				fmt.Println(fmt.Sprintf("- %s\n", err))
 			}
 		}
 
 		evaluated := evaluator.Eval(program)
 
 		if evaluated != nil {
-			io.WriteString(out, evaluated.Inspect())
-			io.WriteString(out, "\n")
+			fmt.Println(evaluated.Inspect())
 		}
 	}
 }

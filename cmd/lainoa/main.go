@@ -23,9 +23,9 @@ func startRepl() {
 	}
 	fmt.Printf("Hello %s! This is the Lainoa programming language\n",
 		user.Username)
-	fmt.Println("\nGo ahead and type some stuff!")
+	fmt.Println("\nGo ahead and enter some code!")
 
-	repl.Start(os.Stdin, os.Stdout)
+	repl.Start()
 }
 
 func main() {
