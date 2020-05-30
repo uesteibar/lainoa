@@ -42,12 +42,12 @@ func Start() {
 			for _, err := range p.Errors() {
 				fmt.Println(fmt.Sprintf("- %s\n", err))
 			}
-		}
+		} else {
+			evaluated := evaluator.Eval(program)
 
-		evaluated := evaluator.Eval(program)
-
-		if evaluated != nil {
-			fmt.Println(evaluated.Inspect())
+			if evaluated != nil {
+				fmt.Println(evaluated.Inspect())
+			}
 		}
 	}
 }
