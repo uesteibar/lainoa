@@ -196,6 +196,21 @@ func TestPrefixExpressions(t *testing.T) {
 	}
 }
 
+func TestPrefixExpressionsErrors(t *testing.T) {
+	l := lexer.New(`
+		!5;
+		&10;
+	`)
+	p := New(l)
+	program := p.ParseProgram()
+
+	assert.NotNil(t, program)
+
+	errors := p.Errors()
+	assert.Len(t, errors, 1)
+	assert.Equal(t, "prefix operation & not recognized", errors[0])
+}
+
 func TestInfixExpressions(t *testing.T) {
 	infixTests := []struct {
 		input      string
@@ -229,6 +244,24 @@ func TestInfixExpressions(t *testing.T) {
 
 		assertInfixExpression(t, stmt.Expression, tt.leftValue, tt.operator, tt.rightValue)
 	}
+}
+
+func TestInfixExpressionsErrors(t *testing.T) {
+	l := lexer.New(`
+		5 *;
+		5 # a;
+		== 10;
+	`)
+	p := New(l)
+	program := p.ParseProgram()
+
+	assert.NotNil(t, program)
+
+	errors := p.Errors()
+	assert.Len(t, errors, 3)
+	assert.Equal(t, "prefix operation ; not recognized", errors[0])
+	assert.Equal(t, "prefix operation # not recognized", errors[1])
+	assert.Equal(t, "prefix operation == not recognized", errors[2])
 }
 
 func TestOperatorPrecedenceParsing(t *testing.T) {
@@ -445,6 +478,25 @@ func TestIfElseExpression(t *testing.T) {
 	assert.Equal(t, "if(x < y) x else y", ifexp.String())
 }
 
+func TestIfElseExpressionsErrors(t *testing.T) {
+	l := lexer.New(`
+		if (x < y) {
+			x
+		}
+		if (x < y) x;
+		if (x < y) { x
+	`)
+	p := New(l)
+	program := p.ParseProgram()
+
+	assert.NotNil(t, program)
+
+	errors := p.Errors()
+	assert.Len(t, errors, 2)
+	assert.Equal(t, "expected next token to be {, got IDENT instead", errors[0])
+	assert.Equal(t, "expected } at the end of the block, got EOF instead", errors[1])
+}
+
 func TestFunctionExpression(t *testing.T) {
 	l := lexer.New(`
 		fun(a, b) {
@@ -535,6 +587,19 @@ func TestCallExpressionParsing(t *testing.T) {
 	assertLiteralExpression(t, exp.Arguments[0], 1)
 	assertInfixExpression(t, exp.Arguments[1], 2, "*", 3)
 	assertInfixExpression(t, exp.Arguments[2], 4, "+", 5)
+}
+
+func TestCallErrors(t *testing.T) {
+	l := lexer.New("add(1, 2 * 3, 4 + 5;")
+	p := New(l)
+	p.ParseProgram()
+
+	errors := p.Errors()
+	assert.Len(t, errors, 1)
+	assert.Equal(t,
+		"expected next token to be ), got ; instead",
+		errors[0],
+	)
 }
 
 func TestDirectCallExpressionParsing(t *testing.T) {

@@ -21,7 +21,7 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 func (p *Parser) parseExpression(precedence int) ast.Expression {
 	prefix, exists := p.prefixParseFns[p.curToken.Type]
 	if !exists {
-		p.addError(fmt.Sprintf("no prefix parse function found for %s", p.curToken.Literal))
+		p.addError(fmt.Sprintf("prefix operation %s not recognized", p.curToken.Literal))
 		return nil
 	}
 
