@@ -45,6 +45,9 @@ func evalProgram(statements []ast.Statement) object.Object {
 		if returnValue, ok := res.(*object.ReturnValue); ok {
 			return returnValue.Value
 		}
+		if err, ok := res.(*object.Error); ok {
+			return err
+		}
 	}
 
 	return res
@@ -57,6 +60,9 @@ func evalBlockStatement(statements []ast.Statement) object.Object {
 		res = Eval(stmt)
 
 		if res != nil && res.Type() == object.RETURN_VALUE_OBJECT {
+			return res
+		}
+		if object.IsError(res) {
 			return res
 		}
 	}

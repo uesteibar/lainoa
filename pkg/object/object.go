@@ -8,6 +8,7 @@ var (
 	BOOLEAN_OBJECT      = ObjectType("BOOLEAN")
 	NULL_OBJECT         = ObjectType("NULL")
 	RETURN_VALUE_OBJECT = ObjectType("RETURN_VALUE")
+	ERROR_OBJECT        = ObjectType("ERROR")
 )
 
 type Object interface {

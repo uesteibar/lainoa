@@ -8,6 +8,9 @@ import (
 
 func evalPrefix(prefix *ast.PrefixExpression) object.Object {
 	right := Eval(prefix.Right)
+	if object.IsError(right) {
+		return right
+	}
 
 	switch prefix.Token.Type {
 	case token.BANG:
@@ -16,9 +19,9 @@ func evalPrefix(prefix *ast.PrefixExpression) object.Object {
 		return evalMinusOperation(right)
 	case token.PLUS:
 		return evalPlusOperation(right)
+	default:
+		return object.NewError("unknown operator: %s%s", prefix.Operator, right.Type())
 	}
-
-	return nil
 }
 
 func evalBangOperation(right object.Object) *object.Boolean {
@@ -36,7 +39,7 @@ func evalBangOperation(right object.Object) *object.Boolean {
 
 func evalPlusOperation(right object.Object) object.Object {
 	if right.Type() != object.INTEGER_OBJECT {
-		return NULL
+		return object.NewError("unknown operator: +%s", right.Type())
 	}
 
 	val := right.(*object.Integer).Value
@@ -45,7 +48,7 @@ func evalPlusOperation(right object.Object) object.Object {
 
 func evalMinusOperation(right object.Object) object.Object {
 	if right.Type() != object.INTEGER_OBJECT {
-		return NULL
+		return object.NewError("unknown operator: -%s", right.Type())
 	}
 
 	val := right.(*object.Integer).Value

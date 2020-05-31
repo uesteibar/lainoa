@@ -8,7 +8,13 @@ import (
 
 func evalInfix(infix *ast.InfixExpression) object.Object {
 	left := Eval(infix.Left)
+	if object.IsError(left) {
+		return left
+	}
 	right := Eval(infix.Right)
+	if object.IsError(right) {
+		return right
+	}
 
 	switch {
 	case left.Type() == object.INTEGER_OBJECT && right.Type() == object.INTEGER_OBJECT:
@@ -19,8 +25,14 @@ func evalInfix(infix *ast.InfixExpression) object.Object {
 		return nativeBoolToBoolean(left == right)
 	case infix.Operator == token.NOT_EQ:
 		return nativeBoolToBoolean(left != right)
+	case left.Type() != right.Type():
+		return object.NewError(
+			"type mismatch: %s %s %s",
+			left.Type(), infix.Operator, right.Type())
 	default:
-		return NULL
+		return object.NewError(
+			"unknown operator: %s %s %s",
+			left.Type(), infix.Operator, right.Type())
 	}
 }
 
@@ -43,6 +55,8 @@ func evalIntegerInfixExpression(left *object.Integer, operator string, right *ob
 	case token.NOT_EQ:
 		return nativeBoolToBoolean(left.Value != right.Value)
 	default:
-		return NULL
+		return object.NewError(
+			"unknown operator: %s %s %s",
+			left.Type(), operator, right.Type())
 	}
 }
