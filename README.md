@@ -2,9 +2,21 @@
 
 ![ci](https://github.com/uesteibar/lainoa/workflows/ci/badge.svg?branch=master)
 
-Programming language built following the interpreterbook.com
+Built following the https://interpreterbook.com.
 
-## Running locally
+I never got far enough in college to the point where I could take the _compilers_ subject,
+and that's been an itch I've always wanted to scratch. So this is me scratching that itch!
+
+Lainoa is an [interpreted language](https://en.wikipedia.org/wiki/Interpreted_language) writen in
+[go](https://golang.org/). It's pretty slow, doesn't have a lot of features, and you shouldn't
+be using it for anything sane. It's here for educational purposes, however I'm still proud 😎 of
+this thing and had a blast 🎉 building it.
+
+Ah, `lainoa` stands for `cloud` in [Euskera](https://en.wikipedia.org/wiki/Basque_language).
+
+## Installing and running
+
+### Running locally
 
 You'll need [golang](https://golang.org/) installed.
 
@@ -30,7 +42,7 @@ Go ahead and type some stuff!
 ⛅️ >>
 ```
 
-## Running with docker
+### Running with docker
 
 ```
 > docker run -it uesteibar/lainoa repl
@@ -38,4 +50,78 @@ Hello root! This is the Lainoa programming language
 
 Go ahead and type some stuff!
 ⛅️ >>
+```
+
+## Features
+
+Lainoa is as simple as a programming language can get.
+
+
+You have numbers and can do fun math with them:
+
+```
+let one = 1
+let two = 2
+
+let five = one + two * 2
+```
+
+Strings are there too:
+
+```
+let name = "Unai"
+let last_name = "Esteibar"
+
+let full_name = name + " " + last_name
+```
+
+And of course booleans and boolean operations:
+
+```
+let lainoa_is_cool = true
+let should_i_use_it = false
+
+15 > 10
+15 < 10
+15 == 10
+15 != 10
+```
+
+You can declare functions and pass them around:
+
+```
+let result = 0
+
+let add = fun(a) {
+  let number = a
+
+  return fun(b) {
+    return number + b
+  }
+}
+
+let addFive = add(5)
+
+result = addFive(10)
+```
+
+There's also conditionals of course, otherwise life would be pretty boring:
+
+```
+let status = fun(age) {
+  if (age < 18) {
+    "little-adult"
+  } else {
+    "adult"
+  }
+}
+
+status(21)
+status(17)
+```
+
+Oh, you can use `;` if you want to do things inline, but they're not mandatory otherwise:
+
+```
+let a = 1; a = a + 2;
 ```

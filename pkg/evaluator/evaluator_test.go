@@ -347,3 +347,29 @@ func TestFunctionArgumentErrors(t *testing.T) {
 
 	assert.Equal(t, "can't re-bind already bound identifier `num`", errObj.Message)
 }
+
+func TestComplexProgram(t *testing.T) {
+	evaluated := eval(`
+	let main = fun() {
+		let result = 0
+
+		let add = fun(a) {
+		  let number = a
+
+		  return fun(b) {
+			return number + b
+		  }
+		}
+
+		let addFive = add(5)
+
+		result = addFive(10)
+
+		result
+	}
+
+	main()
+	`)
+
+	assertIntegerObject(t, evaluated, 15)
+}
