@@ -23,6 +23,10 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return evalLetStatement(node, env)
 	case *ast.ExpressionStatement:
 		return Eval(node.Expression, env)
+	case *ast.FunctionLiteral:
+		return evalFunctionLiteral(node, env)
+	case *ast.CallExpression:
+		return evalFunctionCall(node, env)
 	case *ast.PrefixExpression:
 		return evalPrefix(node, env)
 	case *ast.InfixExpression:

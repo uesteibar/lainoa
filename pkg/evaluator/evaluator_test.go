@@ -198,12 +198,12 @@ func TestErrorHandling(t *testing.T) {
 		},
 		{
 			`if (10 > 1) {
-		if (10 > 1) {
-		return true + false;
-		}
+				if (10 > 1) {
+					return true + false;
+				}
 
-		return 1;
-		}`,
+				return 1;
+			}`,
 			"unknown operator: BOOLEAN + BOOLEAN",
 		},
 		{
@@ -252,10 +252,71 @@ func TestLetStatements(t *testing.T) {
 		{"let a = 5; let b = a; b;", 5},
 		{"let a = 5; let b = a; let c = a + b + 5; c;", 15},
 		{"let a = 5; if (a == 5) { a + 10 };", 15},
+		{"let a = 5; a = 10; a;", 10},
 		{"let a = 5; if (a == 5) { a = 10 }; a;", 10},
 	}
 
 	for _, tt := range tests {
 		assertIntegerObject(t, eval(tt.input), tt.expected)
 	}
+}
+
+func TestFunctionObject(t *testing.T) {
+	input := "fun(x) { x + 2; };"
+
+	evaluated := eval(input)
+	fn, ok := evaluated.(*object.Function)
+	assert.True(t, ok)
+
+	assert.Len(t, fn.Parameters, 1)
+	assert.Equal(t, "x", fn.Parameters[0].String())
+	assert.Equal(t, "(x + 2)", fn.Body.String())
+}
+
+func TestFunctionCalls(t *testing.T) {
+	evaluated := eval(`
+		let multiply = fun(num) {
+			let number = num
+			return fun(multiplyer) {
+				number * multiplyer
+			}
+		}
+
+		multiply(2)(5)
+	`)
+
+	assertIntegerObject(t, evaluated, 10)
+}
+
+func TestFunctionCallErrors(t *testing.T) {
+	evaluated := eval(`
+		let multiply = fun(num) {
+			let number = num
+
+			return number * 2
+		}
+
+		multiply(2)(5)
+	`)
+
+	errObj, ok := evaluated.(*object.Error)
+	assert.True(t, ok)
+
+	assert.Equal(t, "expected 4 to be a function, got INTEGER", errObj.Message)
+}
+
+func TestFunctionArgumentErrors(t *testing.T) {
+	evaluated := eval(`
+		let num = 2
+		let multiply = fun(num) {
+			return num * 2
+		}
+
+		multiply(num)
+	`)
+
+	errObj, ok := evaluated.(*object.Error)
+	assert.True(t, ok)
+
+	assert.Equal(t, "can't re-bind already bound identifier `num`", errObj.Message)
 }
