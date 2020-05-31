@@ -21,7 +21,7 @@ func startRepl() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Hello %s! This is the Lainoa programming language\n",
+	fmt.Printf("Hello %s! This is the Lainoa programming language.\n",
 		user.Username)
 	fmt.Println("\nGo ahead and enter some code!")
 

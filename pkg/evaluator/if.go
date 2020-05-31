@@ -12,9 +12,15 @@ func evalIfExpression(ifexp *ast.IfExpression, env *object.Environment) object.O
 	}
 
 	if isTruthy(condition) {
-		return Eval(ifexp.Consequence, env)
+		env.AddScope()
+		res := Eval(ifexp.Consequence, env)
+		env.ReleaseScope()
+		return res
 	} else if ifexp.Alternative != nil {
-		return Eval(ifexp.Alternative, env)
+		env.AddScope()
+		res := Eval(ifexp.Alternative, env)
+		env.ReleaseScope()
+		return res
 	} else {
 		return NULL
 	}
