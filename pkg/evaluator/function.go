@@ -42,18 +42,22 @@ func evalExpressions(exps []ast.Expression, env *object.Environment) ([]object.O
 }
 
 func applyFunction(fn object.Object, args []object.Object) object.Object {
-	fun, ok := fn.(*object.Function)
-	if !ok {
+	switch fn := fn.(type) {
+
+	case *object.Function:
+		env, err := envWithArgs(fn, args)
+		if err != nil {
+			return err
+		}
+		evaluated := Eval(fn.Body, env)
+		return unwrapReturnValue(evaluated)
+
+	case *object.Builtin:
+		return fn.Fn(args...)
+
+	default:
 		return object.NewError("expected %s to be a function, got %s", fn.Inspect(), fn.Type())
 	}
-
-	env, err := envWithArgs(fun, args)
-	if err != nil {
-		return err
-	}
-	evaluated := Eval(fun.Body, env)
-
-	return unwrapReturnValue(evaluated)
 }
 
 func envWithArgs(fn *object.Function, args []object.Object) (*object.Environment, *object.Error) {

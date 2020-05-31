@@ -6,11 +6,13 @@ import (
 )
 
 func evalIdentifier(ident *ast.Identifier, env *object.Environment) object.Object {
-	val, exists := env.Get(ident.Value)
-
-	if !exists {
-		return object.NewError("identifier not found: %s", ident.Value)
+	if val, exists := builtins[ident.Value]; exists {
+		return val
 	}
 
-	return val
+	if val, exists := env.Get(ident.Value); exists {
+		return val
+	}
+
+	return object.NewError("identifier not found: %s", ident.Value)
 }

@@ -11,6 +11,7 @@ var (
 	RETURN_VALUE_OBJECT = ObjectType("RETURN_VALUE")
 	ERROR_OBJECT        = ObjectType("ERROR")
 	FUNCTION_OBJECT     = ObjectType("FUNCTION")
+	BUILTIN_OBJECT      = ObjectType("BUILTIN")
 )
 
 type Object interface {
