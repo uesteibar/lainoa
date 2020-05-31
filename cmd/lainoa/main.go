@@ -6,14 +6,27 @@ import (
 	"os/user"
 
 	"github.com/uesteibar/lainoa/pkg/repl"
+	"github.com/uesteibar/lainoa/pkg/runner"
 )
 
 func printHelp() {
 	fmt.Println(`
 The following commands are available:
 
+	run		run a file
 	repl	start the lainoa REPL (interactive console)
 	help	print this nice little help`)
+}
+
+func run() {
+	if len(os.Args) < 3 {
+		fmt.Println("You need to tell me what file to run:")
+		fmt.Println("\tlainoa run path/to/file.ln")
+		return
+	}
+
+	filepath := os.Args[2]
+	runner.Start(filepath)
 }
 
 func startRepl() {
@@ -37,6 +50,8 @@ func main() {
 	action := os.Args[1]
 
 	switch action {
+	case "run":
+		run()
 	case "repl":
 		startRepl()
 	case "help":

@@ -15,3 +15,4 @@ repl:
 
 test: ## Run the tests
 	go test ./... -count=1
+

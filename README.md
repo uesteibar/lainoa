@@ -32,7 +32,22 @@ If you don't want to install it, you can also build the binary to `bin/lainoa`:
 make build
 ```
 
-Run the REPL:
+### Run a file
+
+```
+# examples/hello_world.ln
+
+let name = "World"
+
+puts("Hello " + name + "!")
+```
+
+```
+> lainoa run examples/hello_world.ln
+Hello World!
+```
+
+### Run the REPL:
 
 ```
 lainoa repl
@@ -42,14 +57,10 @@ Go ahead and type some stuff!
 ⛅️ >>
 ```
 
-### Running with docker
+or with docker
 
 ```
 > docker run -it uesteibar/lainoa repl
-Hello root! This is the Lainoa programming language
-
-Go ahead and type some stuff!
-⛅️ >>
 ```
 
 ## Features
