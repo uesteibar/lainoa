@@ -11,7 +11,5 @@ func evalLetStatement(let *ast.LetStatement, env *object.Environment) object.Obj
 		return val
 	}
 
-	env.Set(let.Name.Value, val)
-
-	return val
+	return env.Set(let.Name.Value, val)
 }

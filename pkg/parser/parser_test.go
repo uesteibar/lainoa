@@ -441,7 +441,7 @@ func TestIfExpression(t *testing.T) {
 	ident, ok := consBlock.Statements[0].(*ast.ExpressionStatement)
 	assertIdentifier(t, ident.Expression, "x")
 
-	assert.Equal(t, "if(x < y) x", ifexp.String())
+	assert.Equal(t, "if (x < y) x", ifexp.String())
 }
 
 func TestIfElseExpression(t *testing.T) {
@@ -475,7 +475,7 @@ func TestIfElseExpression(t *testing.T) {
 	altIdent, ok := altBlock.Statements[0].(*ast.ExpressionStatement)
 	assertIdentifier(t, altIdent.Expression, "x")
 
-	assert.Equal(t, "if(x < y) x else y", ifexp.String())
+	assert.Equal(t, "if (x < y) x else y", ifexp.String())
 }
 
 func TestIfElseExpressionsErrors(t *testing.T) {
@@ -625,4 +625,23 @@ func TestDirectCallExpressionParsing(t *testing.T) {
 	assertLiteralExpression(t, exp.Arguments[0], 1)
 	assertInfixExpression(t, exp.Arguments[1], 2, "*", 3)
 	assertInfixExpression(t, exp.Arguments[2], 4, "+", 5)
+}
+
+func TestAssignExpressionParsing(t *testing.T) {
+	input := "a = 1;"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	assertNoErrors(t, p)
+
+	assert.Len(t, program.Statements, 1)
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	assert.True(t, ok)
+
+	exp, ok := stmt.Expression.(*ast.AssignExpression)
+	assert.True(t, ok)
+
+	assertIdentifier(t, exp.Name, "a")
 }

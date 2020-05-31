@@ -23,9 +23,28 @@ func (e *Environment) Get(name string) (Object, bool) {
 }
 
 func (e *Environment) Set(name string, value Object) Object {
+	if _, exists := e.Get(name); exists {
+		return NewError("can't re-bind already bound identifier `%s`", name)
+	}
+
 	scope, err := e.scopes.Current()
 	if err != nil {
 		panic(err)
+	}
+
+	scope.store[name] = value
+
+	return value
+}
+
+func (e *Environment) Rebind(name string, value Object) Object {
+	scope, exists := e.scopes.GetScopeForIdentifier(name)
+
+	if !exists {
+		return NewError(
+			"can't assign identier `%s` because it doesn't exist, you need to do `let %s = %s` first",
+			name, name, value.Inspect(),
+		)
 	}
 
 	scope.store[name] = value
@@ -56,6 +75,18 @@ type stack struct {
 
 func newStack() *stack {
 	return &stack{scopes: []*scope{}}
+}
+
+func (s *stack) GetScopeForIdentifier(name string) (*scope, bool) {
+	for _, sc := range s.scopes {
+		_, exists := sc.store[name]
+
+		if exists {
+			return sc, true
+		}
+	}
+
+	return nil, false
 }
 
 func (s *stack) GetIdentifier(name string) (Object, bool) {

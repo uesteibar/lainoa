@@ -198,12 +198,12 @@ func TestErrorHandling(t *testing.T) {
 		},
 		{
 			`if (10 > 1) {
-			   if (10 > 1) {
-				 return true + false;
-			   }
+		if (10 > 1) {
+		return true + false;
+		}
 
-			   return 1;
-			 }`,
+		return 1;
+		}`,
 			"unknown operator: BOOLEAN + BOOLEAN",
 		},
 		{
@@ -221,6 +221,14 @@ func TestErrorHandling(t *testing.T) {
 		{
 			"let a = 1; if(false) { let scoped = a + 1 }; scoped;",
 			"identifier not found: scoped",
+		},
+		{
+			"if(true) { a = 1 };",
+			"can't assign identier `a` because it doesn't exist, you need to do `let a = 1` first",
+		},
+		{
+			"let a = 1; let a = 10;",
+			"can't re-bind already bound identifier `a`",
 		},
 	}
 
@@ -244,6 +252,7 @@ func TestLetStatements(t *testing.T) {
 		{"let a = 5; let b = a; b;", 5},
 		{"let a = 5; let b = a; let c = a + b + 5; c;", 15},
 		{"let a = 5; if (a == 5) { a + 10 };", 15},
+		{"let a = 5; if (a == 5) { a = 10 }; a;", 10},
 	}
 
 	for _, tt := range tests {
