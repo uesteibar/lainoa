@@ -99,6 +99,10 @@ func (l *Lexer) NextToken() (t token.Token) {
 		t.Literal = l.readString()
 		t.Type = token.STRING
 		l.readChar()
+	case '#':
+		t.Literal = l.readComment()
+		t.Type = token.COMMENT
+		l.readChar()
 	case 0:
 		t.Literal = ""
 		t.Type = token.EOF
@@ -149,6 +153,17 @@ func (l *Lexer) readIdentifier() string {
 func (l *Lexer) readNumber() string {
 	initialPosition := l.position
 	for isDigit(l.ch) {
+		l.readChar()
+	}
+
+	return l.input[initialPosition:l.position]
+}
+
+func (l *Lexer) readComment() string {
+	l.readChar()
+	l.skipWhitespace()
+	initialPosition := l.position
+	for l.ch != '\n' && l.ch != '\r' && l.ch != 0 {
 		l.readChar()
 	}
 

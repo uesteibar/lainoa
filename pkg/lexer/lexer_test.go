@@ -32,7 +32,9 @@ func TestNextToken(t *testing.T) {
 
 		-5;
 		a + bb
-		"test-string"
+
+		# this is a comment
+		"test-string" # inline comment
 		let name = "unai esteibar";`
 
 	tests := []struct {
@@ -67,7 +69,8 @@ func TestNextToken(t *testing.T) {
 		{token.MINUS, "-"}, {token.INT, "5"}, {token.SEMICOLON, ";"},
 		{token.IDENT, "a"}, {token.PLUS, "+"}, {token.IDENT, "bb"},
 
-		{token.STRING, "test-string"},
+		{token.COMMENT, "this is a comment"},
+		{token.STRING, "test-string"}, {token.COMMENT, "inline comment"},
 		{token.LET, "let"}, {token.IDENT, "name"}, {token.ASSIGN, "="}, {token.STRING, "unai esteibar"}, {token.SEMICOLON, ";"},
 	}
 

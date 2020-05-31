@@ -266,7 +266,7 @@ func TestInfixExpressions(t *testing.T) {
 func TestInfixExpressionsErrors(t *testing.T) {
 	l := lexer.New(`
 		5 *;
-		5 # a;
+		5 $ a;
 		== 10;
 	`)
 	p := New(l)
@@ -277,7 +277,7 @@ func TestInfixExpressionsErrors(t *testing.T) {
 	errors := p.Errors()
 	assert.Len(t, errors, 3)
 	assert.Equal(t, "prefix operation ; not recognized", errors[0])
-	assert.Equal(t, "prefix operation # not recognized", errors[1])
+	assert.Equal(t, "prefix operation $ not recognized", errors[1])
 	assert.Equal(t, "prefix operation == not recognized", errors[2])
 }
 
@@ -661,4 +661,34 @@ func TestAssignExpressionParsing(t *testing.T) {
 	assert.True(t, ok)
 
 	assertIdentifier(t, exp.Name, "a")
+}
+
+func TestComments(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			"1 + 1 # inline comment",
+			"(1 + 1)",
+		},
+		{
+			`
+			# full line comment
+			1 + 1
+			`,
+			"(1 + 1)",
+		},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		assertNoErrors(t, p)
+
+		assert.Len(t, program.Statements, 1)
+		actual := program.String()
+		assert.Equal(t, tt.expected, actual)
+	}
 }

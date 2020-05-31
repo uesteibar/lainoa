@@ -72,7 +72,7 @@ Strings are there too:
 let name = "Unai"
 let last_name = "Esteibar"
 
-let full_name = name + " " + last_name
+let full_name = name + " " + last_name # => "Unai Esteibar"
 ```
 
 And of course booleans and boolean operations:
@@ -116,8 +116,8 @@ let status = fun(age) {
   }
 }
 
-status(21)
-status(17)
+status(21) # => "adult"
+status(17) # => "little-adult"
 ```
 
 Oh, you can use `;` if you want to do things inline, but they're not mandatory otherwise:

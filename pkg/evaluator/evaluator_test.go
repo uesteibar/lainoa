@@ -365,6 +365,8 @@ func TestComplexProgram(t *testing.T) {
 
 		result = addFive(10)
 
+		# result = 10
+
 		result
 	}
 

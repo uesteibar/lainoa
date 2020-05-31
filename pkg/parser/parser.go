@@ -58,6 +58,8 @@ func New(l *lexer.Lexer) *Parser {
 
 	p.registerPrefix(token.STRING, p.parseString)
 
+	p.registerPrefix(token.COMMENT, func() ast.Expression { return nil })
+
 	p.registerPrefix(token.TRUE, p.parseBoolean)
 	p.registerPrefix(token.FALSE, p.parseBoolean)
 
@@ -101,7 +103,9 @@ func (p *Parser) ParseProgram() *ast.Program {
 	for p.curToken.Type != token.EOF {
 		stmt := p.parseStatement()
 
-		program.Statements = append(program.Statements, stmt)
+		if stmt != nil {
+			program.Statements = append(program.Statements, stmt)
+		}
 
 		p.nextToken()
 	}
@@ -111,6 +115,8 @@ func (p *Parser) ParseProgram() *ast.Program {
 
 func (p *Parser) parseStatement() ast.Statement {
 	switch p.curToken.Type {
+	case token.COMMENT:
+		return nil
 	case token.LET:
 		return p.parseLetStatement()
 	case token.RETURN:
