@@ -73,6 +73,8 @@ let name = "Unai"
 let last_name = "Esteibar"
 
 let full_name = name + " " + last_name # => "Unai Esteibar"
+
+puts(full_name) # prints Unai Esteibar
 ```
 
 And of course booleans and boolean operations:
