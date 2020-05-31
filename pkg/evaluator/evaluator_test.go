@@ -25,6 +25,13 @@ func assertIntegerObject(t *testing.T, obj object.Object, expected int64) {
 	assert.Equal(t, expected, integer.Value)
 }
 
+func assertStringObject(t *testing.T, obj object.Object, expected string) {
+	str, ok := obj.(*object.String)
+	assert.True(t, ok)
+
+	assert.Equal(t, expected, str.Value)
+}
+
 func assertBooleanObject(t *testing.T, obj object.Object, expected bool) {
 	integer, ok := obj.(*object.Boolean)
 	assert.True(t, ok)
@@ -59,6 +66,22 @@ func TestEvalIntegerExpression(t *testing.T) {
 	for _, tt := range tests {
 		evaluated := eval(tt.input)
 		assertIntegerObject(t, evaluated, tt.expected)
+	}
+}
+
+func TestEvalStringExpression(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{`"5"`, "5"},
+		{`"unai"`, "unai"},
+		{`"unai" + " " + "esteibar"`, "unai esteibar"},
+	}
+
+	for _, tt := range tests {
+		evaluated := eval(tt.input)
+		assertStringObject(t, evaluated, tt.expected)
 	}
 }
 
@@ -187,6 +210,10 @@ func TestErrorHandling(t *testing.T) {
 		{
 			"true + false;",
 			"unknown operator: BOOLEAN + BOOLEAN",
+		},
+		{
+			`"unai" - "ai"; true;`,
+			"unknown operator: STRING - STRING",
 		},
 		{
 			"5; true + false; 5",

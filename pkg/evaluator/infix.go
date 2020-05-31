@@ -1,6 +1,8 @@
 package evaluator
 
 import (
+	"fmt"
+
 	"github.com/uesteibar/lainoa/pkg/ast"
 	"github.com/uesteibar/lainoa/pkg/object"
 	"github.com/uesteibar/lainoa/pkg/token"
@@ -21,6 +23,10 @@ func evalInfix(infix *ast.InfixExpression, env *object.Environment) object.Objec
 		left := left.(*object.Integer)
 		right := right.(*object.Integer)
 		return evalIntegerInfixExpression(left, infix.Operator, right)
+	case left.Type() == object.STRING_OBJECT && right.Type() == object.STRING_OBJECT:
+		left := left.(*object.String)
+		right := right.(*object.String)
+		return evalStringInfixExpression(left, infix.Operator, right)
 	case infix.Operator == token.EQ:
 		return nativeBoolToBoolean(left == right)
 	case infix.Operator == token.NOT_EQ:
@@ -54,6 +60,17 @@ func evalIntegerInfixExpression(left *object.Integer, operator string, right *ob
 		return nativeBoolToBoolean(left.Value == right.Value)
 	case token.NOT_EQ:
 		return nativeBoolToBoolean(left.Value != right.Value)
+	default:
+		return object.NewError(
+			"unknown operator: %s %s %s",
+			left.Type(), operator, right.Type())
+	}
+}
+
+func evalStringInfixExpression(left *object.String, operator string, right *object.String) object.Object {
+	switch operator {
+	case token.PLUS:
+		return &object.String{Value: fmt.Sprintf("%s%s", left.Value, right.Value)}
 	default:
 		return object.NewError(
 			"unknown operator: %s %s %s",

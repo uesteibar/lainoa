@@ -168,6 +168,23 @@ func TestIntegerExpression(t *testing.T) {
 	assertLiteralExpression(t, stmt.Expression, 550)
 }
 
+func TestStringExpression(t *testing.T) {
+	l := lexer.New(`"unai"`)
+
+	p := New(l)
+	program := p.ParseProgram()
+
+	assertNoErrors(t, p)
+	assert.Len(t, program.Statements, 1)
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	assert.True(t, ok)
+
+	str, ok := stmt.Expression.(*ast.StringLiteral)
+	assert.True(t, ok)
+	assert.Equal(t, "unai", str.Value)
+}
+
 func TestPrefixExpressions(t *testing.T) {
 	prefixTests := []struct {
 		input    string
