@@ -5,16 +5,16 @@ import (
 	"github.com/uesteibar/lainoa/pkg/object"
 )
 
-func evalIfExpression(ifexp *ast.IfExpression) object.Object {
-	condition := Eval(ifexp.Condition)
+func evalIfExpression(ifexp *ast.IfExpression, env *object.Environment) object.Object {
+	condition := Eval(ifexp.Condition, env)
 	if object.IsError(condition) {
 		return condition
 	}
 
 	if isTruthy(condition) {
-		return Eval(ifexp.Consequence)
+		return Eval(ifexp.Consequence, env)
 	} else if ifexp.Alternative != nil {
-		return Eval(ifexp.Alternative)
+		return Eval(ifexp.Alternative, env)
 	} else {
 		return NULL
 	}

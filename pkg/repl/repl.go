@@ -6,6 +6,7 @@ import (
 	"github.com/chzyer/readline"
 	"github.com/uesteibar/lainoa/pkg/evaluator"
 	"github.com/uesteibar/lainoa/pkg/lexer"
+	"github.com/uesteibar/lainoa/pkg/object"
 	"github.com/uesteibar/lainoa/pkg/parser"
 )
 
@@ -26,6 +27,8 @@ func Start() {
 	}
 	defer l.Close()
 
+	env := object.NewEnvironment()
+
 	for {
 		line, err := l.Readline()
 		if err != nil {
@@ -43,7 +46,7 @@ func Start() {
 				fmt.Println(fmt.Sprintf("- %s\n", err))
 			}
 		} else {
-			evaluated := evaluator.Eval(program)
+			evaluated := evaluator.Eval(program, env)
 
 			if evaluated != nil {
 				fmt.Println(evaluated.Inspect())

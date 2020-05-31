@@ -6,8 +6,8 @@ import (
 	"github.com/uesteibar/lainoa/pkg/token"
 )
 
-func evalPrefix(prefix *ast.PrefixExpression) object.Object {
-	right := Eval(prefix.Right)
+func evalPrefix(prefix *ast.PrefixExpression, env *object.Environment) object.Object {
+	right := Eval(prefix.Right, env)
 	if object.IsError(right) {
 		return right
 	}

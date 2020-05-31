@@ -6,12 +6,12 @@ import (
 	"github.com/uesteibar/lainoa/pkg/token"
 )
 
-func evalInfix(infix *ast.InfixExpression) object.Object {
-	left := Eval(infix.Left)
+func evalInfix(infix *ast.InfixExpression, env *object.Environment) object.Object {
+	left := Eval(infix.Left, env)
 	if object.IsError(left) {
 		return left
 	}
-	right := Eval(infix.Right)
+	right := Eval(infix.Right, env)
 	if object.IsError(right) {
 		return right
 	}

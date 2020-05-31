@@ -5,8 +5,8 @@ import (
 	"github.com/uesteibar/lainoa/pkg/object"
 )
 
-func evalReturnStatement(ret *ast.ReturnStatement) object.Object {
-	value := Eval(ret.Value)
+func evalReturnStatement(ret *ast.ReturnStatement, env *object.Environment) object.Object {
+	value := Eval(ret.Value, env)
 	if object.IsError(value) {
 		return value
 	}

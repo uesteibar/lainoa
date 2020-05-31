@@ -11,36 +11,40 @@ var (
 	FALSE = &object.Boolean{Value: false}
 )
 
-func Eval(node ast.Node) object.Object {
+func Eval(node ast.Node, env *object.Environment) object.Object {
 	switch node := node.(type) {
 	case *ast.Program:
-		return evalProgram(node.Statements)
+		return evalProgram(node.Statements, env)
 	case *ast.BlockStatement:
-		return evalBlockStatement(node.Statements)
+		return evalBlockStatement(node.Statements, env)
 	case *ast.ReturnStatement:
-		return evalReturnStatement(node)
+		return evalReturnStatement(node, env)
+	case *ast.LetStatement:
+		return evalLetStatement(node, env)
 	case *ast.ExpressionStatement:
-		return Eval(node.Expression)
+		return Eval(node.Expression, env)
 	case *ast.PrefixExpression:
-		return evalPrefix(node)
+		return evalPrefix(node, env)
 	case *ast.InfixExpression:
-		return evalInfix(node)
+		return evalInfix(node, env)
 	case *ast.IfExpression:
-		return evalIfExpression(node)
+		return evalIfExpression(node, env)
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: node.Value}
 	case *ast.Boolean:
 		return evalBoolean(node)
+	case *ast.Identifier:
+		return evalIdentifier(node, env)
 	default:
 		return nil
 	}
 }
 
-func evalProgram(statements []ast.Statement) object.Object {
+func evalProgram(statements []ast.Statement, env *object.Environment) object.Object {
 	var res object.Object
 
 	for _, stmt := range statements {
-		res = Eval(stmt)
+		res = Eval(stmt, env)
 
 		if returnValue, ok := res.(*object.ReturnValue); ok {
 			return returnValue.Value
@@ -53,11 +57,11 @@ func evalProgram(statements []ast.Statement) object.Object {
 	return res
 }
 
-func evalBlockStatement(statements []ast.Statement) object.Object {
+func evalBlockStatement(statements []ast.Statement, env *object.Environment) object.Object {
 	var res object.Object
 
 	for _, stmt := range statements {
-		res = Eval(stmt)
+		res = Eval(stmt, env)
 
 		if res != nil && res.Type() == object.RETURN_VALUE_OBJECT {
 			return res

@@ -1,7 +1,6 @@
 package evaluator
 
 import (
-	"log"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,8 +13,9 @@ func eval(input string) object.Object {
 	l := lexer.New(input)
 	p := parser.New(l)
 	program := p.ParseProgram()
+	env := object.NewEnvironment()
 
-	return Eval(program)
+	return Eval(program, env)
 }
 
 func assertIntegerObject(t *testing.T, obj object.Object, expected int64) {
@@ -130,8 +130,6 @@ func TestIfElseExpressions(t *testing.T) {
 	for _, tt := range tests {
 		evaluated := eval(tt.input)
 		integer, ok := tt.expected.(int)
-		log.Println(tt)
-		log.Println(evaluated)
 		if ok {
 			assertIntegerObject(t, evaluated, int64(integer))
 		} else {
@@ -208,6 +206,10 @@ func TestErrorHandling(t *testing.T) {
 			 }`,
 			"unknown operator: BOOLEAN + BOOLEAN",
 		},
+		{
+			"foobar",
+			"identifier not found: foobar",
+		},
 	}
 
 	for _, tt := range tests {
@@ -217,5 +219,21 @@ func TestErrorHandling(t *testing.T) {
 		assert.True(t, ok)
 
 		assert.Equal(t, tt.expectedMessage, errObj.Message)
+	}
+}
+
+func TestLetStatements(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{"let a = 5; a;", 5},
+		{"let a = 5 * 5; a;", 25},
+		{"let a = 5; let b = a; b;", 5},
+		{"let a = 5; let b = a; let c = a + b + 5; c;", 15},
+	}
+
+	for _, tt := range tests {
+		assertIntegerObject(t, eval(tt.input), tt.expected)
 	}
 }
