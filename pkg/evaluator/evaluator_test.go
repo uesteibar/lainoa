@@ -156,7 +156,7 @@ func TestIfElseExpressions(t *testing.T) {
 		if ok {
 			assertIntegerObject(t, evaluated, int64(integer))
 		} else {
-			assert.Equal(t, NULL, evaluated)
+			assert.Equal(t, NIL, evaluated)
 		}
 	}
 }
@@ -400,4 +400,11 @@ func TestLenBuiltin(t *testing.T) {
 			assert.Equal(t, expected, errObj.Message)
 		}
 	}
+}
+
+func TestNil(t *testing.T) {
+	evaluated := eval(`let a = nil; a`)
+
+	_, ok := evaluated.(*object.Nil)
+	assert.True(t, ok)
 }

@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	NULL  = &object.Null{}
+	NIL   = &object.Nil{}
 	TRUE  = &object.Boolean{Value: true}
 	FALSE = &object.Boolean{Value: false}
 )
@@ -39,6 +39,8 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return &object.Integer{Value: node.Value}
 	case *ast.StringLiteral:
 		return &object.String{Value: node.Value}
+	case *ast.NilLiteral:
+		return &object.Nil{}
 	case *ast.Boolean:
 		return evalBoolean(node)
 	case *ast.Identifier:

@@ -692,3 +692,18 @@ func TestComments(t *testing.T) {
 		assert.Equal(t, tt.expected, actual)
 	}
 }
+
+func TestNil(t *testing.T) {
+	l := lexer.New(`let a = nil`)
+	p := New(l)
+	program := p.ParseProgram()
+	assertNoErrors(t, p)
+
+	assert.Len(t, program.Statements, 1)
+
+	let, ok := program.Statements[0].(*ast.LetStatement)
+	assert.True(t, ok)
+
+	_, ok = let.Value.(*ast.NilLiteral)
+	assert.True(t, ok)
+}

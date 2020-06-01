@@ -16,13 +16,13 @@ func evalIfExpression(ifexp *ast.IfExpression, env *object.Environment) object.O
 	} else if ifexp.Alternative != nil {
 		return Eval(ifexp.Alternative, object.NewEnclosedEnvironment(env))
 	} else {
-		return NULL
+		return NIL
 	}
 }
 
 func isTruthy(obj object.Object) bool {
 	switch obj {
-	case NULL:
+	case NIL:
 		return false
 	case TRUE:
 		return true

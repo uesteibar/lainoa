@@ -33,6 +33,8 @@ func TestNextToken(t *testing.T) {
 		-5;
 		a + bb
 
+		nil
+
 		# this is a comment
 		"test-string" # inline comment
 		let name = "unai esteibar";`
@@ -68,6 +70,8 @@ func TestNextToken(t *testing.T) {
 
 		{token.MINUS, "-"}, {token.INT, "5"}, {token.SEMICOLON, ";"},
 		{token.IDENT, "a"}, {token.PLUS, "+"}, {token.IDENT, "bb"},
+
+		{token.NIL, "nil"},
 
 		{token.COMMENT, "this is a comment"},
 		{token.STRING, "test-string"}, {token.COMMENT, "inline comment"},

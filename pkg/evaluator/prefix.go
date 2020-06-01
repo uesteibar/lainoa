@@ -30,7 +30,7 @@ func evalBangOperation(right object.Object) *object.Boolean {
 		return FALSE
 	case FALSE:
 		return TRUE
-	case NULL:
+	case NIL:
 		return TRUE
 	default:
 		return FALSE

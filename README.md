@@ -138,3 +138,12 @@ Oh, you can use `;` if you want to do things inline, but they're not mandatory o
 ```
 let a = 1; a = a + 2;
 ```
+
+For funky cases, there's `nil`:
+
+```
+let a = if (false) { "never" }
+
+puts(a) # => nil
+```
+

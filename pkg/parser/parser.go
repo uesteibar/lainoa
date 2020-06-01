@@ -58,6 +58,8 @@ func New(l *lexer.Lexer) *Parser {
 
 	p.registerPrefix(token.STRING, p.parseString)
 
+	p.registerPrefix(token.NIL, p.parseNil)
+
 	p.registerPrefix(token.COMMENT, func() ast.Expression { return nil })
 
 	p.registerPrefix(token.TRUE, p.parseBoolean)
