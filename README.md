@@ -9,8 +9,7 @@ and that's been an itch I've always wanted to scratch. So this is me scratching 
 
 Lainoa is an [interpreted language](https://en.wikipedia.org/wiki/Interpreted_language) writen in
 [go](https://golang.org/). It's pretty slow, doesn't have a lot of features, and you shouldn't
-be using it for anything sane. It's here for educational purposes, however I'm still proud 😎 of
-this thing and had a blast 🎉 building it.
+be using it for anything sane. It's here for educational purposes, and I had a blast 🎉 building it.
 
 Ah, `lainoa` stands for `cloud` in [Euskera](https://en.wikipedia.org/wiki/Basque_language).
 
