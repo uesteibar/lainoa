@@ -1,3 +1,7 @@
 let name = "World"
 
-puts("Hello " + name + "!")
+let greet = fun(str) {
+  puts("Hello " + str + "!")
+}
+
+greet(name)
