@@ -1,0 +1,7 @@
+let greet = fun(greeting, name) {
+  puts(greeting + ", " + name + "!")
+}
+
+let hello_greeter = greet("Curried hello")
+
+hello_greeter("Lainoa") # => Curried hello, Lainoa

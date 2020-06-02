@@ -117,6 +117,18 @@ let addFive = add(5)
 result = addFive(10)
 ```
 
+Functions in _lainoa_ are automatically curried when called with less arguments than expected:
+
+```
+let greet = fun(greeting, name) {
+  puts(greeting + ", " + name + "!")
+}
+
+let hello_greeter = greet("Curried hello")
+
+hello_greeter("Lainoa") # => Curried hello, Lainoa
+```
+
 There's also conditionals of course, otherwise life would be pretty boring:
 
 ```

@@ -31,3 +31,19 @@ func (f *Function) Inspect() string {
 
 	return out.String()
 }
+
+type CurriedFunction struct {
+	Fn             *Function
+	Env            *Environment
+	ParametersLeft []*ast.Identifier
+}
+
+func (f *CurriedFunction) Type() ObjectType { return CURRIED_FUNCTION_OBJECT }
+func (f *CurriedFunction) Inspect() string {
+	var out bytes.Buffer
+
+	out.WriteString("Curried Function: ")
+	out.WriteString(f.Fn.Inspect())
+
+	return out.String()
+}

@@ -319,6 +319,44 @@ func TestFunctionCalls(t *testing.T) {
 	assertIntegerObject(t, evaluated, 10)
 }
 
+func TestFunctionCurrying(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{
+			`
+			let multiply = fun(a, b) {
+				a * b
+			}
+
+			let by_five = multiply(5)
+
+			by_five(10)
+			`,
+			50,
+		},
+		{
+			`
+			let multiply = fun(a, b, c, d) {
+				a * b * c * d
+			}
+
+			let by_fifty = multiply(5, 10)
+
+			by_fifty(3)(2)
+			`,
+			300,
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := eval(tt.input)
+
+		assertIntegerObject(t, evaluated, tt.expected)
+	}
+}
+
 func TestFunctionCallErrors(t *testing.T) {
 	evaluated := eval(`
 		let multiply = fun(num) {

@@ -29,15 +29,28 @@ func evalFunctionCall(call *ast.CallExpression, env *object.Environment) object.
 
 func applyFunction(fn object.Object, args []object.Object) object.Object {
 	switch fn := fn.(type) {
-
 	case *object.Function:
-		env, err := envWithArgs(fn, args)
+		env, err := envWithArgs(fn.Parameters, args, fn.Env)
 		if err != nil {
 			return err
 		}
+		if len(args) < len(fn.Parameters) {
+			return curryFunction(fn, env, args)
+		}
+
 		evaluated := Eval(fn.Body, env)
 		return unwrapReturnValue(evaluated)
+	case *object.CurriedFunction:
+		env, err := envWithArgs(fn.ParametersLeft, args, fn.Env)
+		if err != nil {
+			return err
+		}
+		if len(args) < len(fn.ParametersLeft) {
+			return recurryFunction(fn, env, args)
+		}
 
+		evaluated := Eval(fn.Fn.Body, env)
+		return unwrapReturnValue(evaluated)
 	case *object.Builtin:
 		return fn.Fn(args...)
 
@@ -46,18 +59,37 @@ func applyFunction(fn object.Object, args []object.Object) object.Object {
 	}
 }
 
-func envWithArgs(fn *object.Function, args []object.Object) (*object.Environment, *object.Error) {
-	env := object.NewEnclosedEnvironment(fn.Env)
+func curryFunction(fn *object.Function, env *object.Environment, args []object.Object) *object.CurriedFunction {
+	return &object.CurriedFunction{
+		Fn:             fn,
+		Env:            env,
+		ParametersLeft: fn.Parameters[len(args):len(fn.Parameters)],
+	}
+}
 
-	for paramIdx, param := range fn.Parameters {
-		res := env.Set(param.Value, args[paramIdx])
+func recurryFunction(cur *object.CurriedFunction, env *object.Environment, args []object.Object) *object.CurriedFunction {
+	return &object.CurriedFunction{
+		Fn:             cur.Fn,
+		Env:            env,
+		ParametersLeft: cur.ParametersLeft[len(args):len(cur.ParametersLeft)],
+	}
+}
+
+func envWithArgs(params []*ast.Identifier, args []object.Object, env *object.Environment) (*object.Environment, *object.Error) {
+	newEnv := object.NewEnclosedEnvironment(env)
+
+	for paramIdx, param := range params {
+		if paramIdx >= len(args) {
+			return newEnv, nil
+		}
+		res := newEnv.Set(param.Value, args[paramIdx])
 
 		if err, ok := res.(*object.Error); ok {
-			return env, err
+			return newEnv, err
 		}
 	}
 
-	return env, nil
+	return newEnv, nil
 }
 
 func unwrapReturnValue(obj object.Object) object.Object {
