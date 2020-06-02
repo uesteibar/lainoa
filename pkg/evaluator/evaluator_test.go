@@ -509,3 +509,34 @@ func TestIndexError(t *testing.T) {
 		assert.Equal(t, tt.expected, err.Message)
 	}
 }
+func TestArrayPush(t *testing.T) {
+	evaluated := eval(`
+	let array = [3, 2, 1]
+	let new_array = push(array, 0)
+
+	let res = [new_array, array]
+	res`)
+
+	res, ok := evaluated.(*object.Array)
+	assert.True(t, ok)
+	newArray, ok := res.Elements[0].(*object.Array)
+	assert.True(t, ok)
+
+	assertIntegerObject(t, newArray.Elements[0], 3)
+	assertIntegerObject(t, newArray.Elements[1], 2)
+	assertIntegerObject(t, newArray.Elements[2], 1)
+	assertIntegerObject(t, newArray.Elements[3], 0)
+
+	oldArray, ok := res.Elements[1].(*object.Array)
+	assert.True(t, ok)
+
+	assertIntegerObject(t, oldArray.Elements[0], 3)
+	assertIntegerObject(t, oldArray.Elements[1], 2)
+	assertIntegerObject(t, oldArray.Elements[2], 1)
+}
+
+func TestArrayLen(t *testing.T) {
+	evaluated := eval(`len([3, 2, 1])`)
+
+	assertIntegerObject(t, evaluated, 3)
+}

@@ -39,6 +39,8 @@ func TestNextToken(t *testing.T) {
 		"test-string" # inline comment
 		let name = "unai esteibar";
 
+		let array = [1, 2]
+		let new_array = push(array, 0)
 		[1, 2]`
 
 	tests := []struct {
@@ -79,6 +81,8 @@ func TestNextToken(t *testing.T) {
 		{token.STRING, "test-string"}, {token.COMMENT, "inline comment"},
 		{token.LET, "let"}, {token.IDENT, "name"}, {token.ASSIGN, "="}, {token.STRING, "unai esteibar"}, {token.SEMICOLON, ";"},
 
+		{token.LET, "let"}, {token.IDENT, "array"}, {token.ASSIGN, "="}, {token.LBRACKET, "["}, {token.INT, "1"}, {token.COMMA, ","}, {token.INT, "2"}, {token.RBRACKET, "]"},
+		{token.LET, "let"}, {token.IDENT, "new_array"}, {token.ASSIGN, "="}, {token.IDENT, "push"}, {token.LPAREN, "("}, {token.IDENT, "array"}, {token.COMMA, ","}, {token.INT, "0"}, {token.RPAREN, ")"},
 		{token.LBRACKET, "["}, {token.INT, "1"}, {token.COMMA, ","}, {token.INT, "2"}, {token.RBRACKET, "]"},
 	}
 

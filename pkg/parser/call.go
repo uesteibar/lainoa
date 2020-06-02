@@ -32,7 +32,7 @@ func (p *Parser) parseCallArguments() []ast.Expression {
 	}
 
 	if !p.expectPeek(token.RPAREN) {
-		return args
+		return nil
 	}
 
 	return args

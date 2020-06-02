@@ -1,0 +1,37 @@
+let join = fun(initial_arr, juncture) {
+  let iter = fun(arr, accumulated) {
+    if (len(arr) == 0) {
+      accumulated
+    } else {
+      accumulated = if (accumulated == "") { accumulated } else { accumulated + juncture }
+      iter(rest(arr), accumulated + head(arr))
+    }
+  }
+
+  iter(initial_arr, "")
+}
+
+let map = fun(initial_arr, f) {
+  let iter = fun(arr, accumulated) {
+    if (len(arr) == 0) {
+      accumulated
+    } else {
+      iter(rest(arr), push(accumulated, f(head(arr))))
+    }
+  }
+
+  iter(initial_arr, [])
+}
+
+let shopping_list = [
+  "milk",
+  "cereals",
+  "bread"
+]
+
+shopping_list = map(shopping_list, fun(item) { item + "!" })
+
+# we almost forgot the most important thing!
+shopping_list = push(shopping_list, "chocolate")
+
+puts("We need to buy: " + join(shopping_list, ", "))

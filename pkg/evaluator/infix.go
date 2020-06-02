@@ -71,6 +71,10 @@ func evalStringInfixExpression(left *object.String, operator string, right *obje
 	switch operator {
 	case token.PLUS:
 		return &object.String{Value: fmt.Sprintf("%s%s", left.Value, right.Value)}
+	case token.EQ:
+		return nativeBoolToBoolean(left.Value == right.Value)
+	case token.NOT_EQ:
+		return nativeBoolToBoolean(left.Value != right.Value)
 	default:
 		return object.NewError(
 			"unknown operator: %s %s %s",

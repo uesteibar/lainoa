@@ -133,6 +133,7 @@ status(17) # => "little-adult"
 ```
 
 Arrays, because otherwise how would you build a ToDo app?
+(see [this example](./examples/map.ln) for a more complex showcase of arrays).
 
 ```
 let shopping_list = [
@@ -144,6 +145,10 @@ let shopping_list = [
 puts(shopping_list[0]) # => "milk"
 puts(shopping_list[1]) # => "cereals"
 puts(shopping_list[2]) # => "bread"
+puts(shopping_list[3]) # => nil
+
+shopping_list = push(shopping_list, "chocolate")
+puts(shopping_list[3]) # => "chocolate"
 ```
 
 Oh, you can use `;` if you want to do things inline, but they're not mandatory otherwise:
