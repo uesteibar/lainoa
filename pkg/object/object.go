@@ -12,6 +12,7 @@ var (
 	ERROR_OBJECT        = ObjectType("ERROR")
 	FUNCTION_OBJECT     = ObjectType("FUNCTION")
 	BUILTIN_OBJECT      = ObjectType("BUILTIN")
+	ARRAY_OBJECT        = ObjectType("ARRAY")
 )
 
 type Object interface {

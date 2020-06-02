@@ -412,3 +412,100 @@ func TestNil(t *testing.T) {
 	_, ok := evaluated.(*object.Nil)
 	assert.True(t, ok)
 }
+
+func TestArray(t *testing.T) {
+	evaluated := eval(`[3, 2, 1]`)
+
+	res, ok := evaluated.(*object.Array)
+	assert.True(t, ok)
+
+	assertIntegerObject(t, res.Elements[0], 3)
+	assertIntegerObject(t, res.Elements[1], 2)
+	assertIntegerObject(t, res.Elements[2], 1)
+}
+
+func TestArrayIndex(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{
+			"[][0]",
+			nil,
+		},
+		{
+			"[1, 2, 3][0]",
+			1,
+		},
+		{
+			"[1, 2, 3][1]",
+			2,
+		},
+		{
+			"[1, 2, 3][2]",
+			3,
+		},
+		{
+			"let i = 0; [1][i];",
+			1,
+		},
+		{
+			"[1, 2, 3][1 + 1];",
+			3,
+		},
+		{
+			"let array = [1, 2, 3]; array[2];",
+			3,
+		},
+		{
+			"let array = [1, 2, 3]; array[0] + array[1] + array[2];",
+			6,
+		},
+		{
+			"let array = [1, 2, 3]; let i = array[0]; array[i]",
+			2,
+		},
+		{
+			"[1, 2, 3][3]",
+			nil,
+		},
+		{
+			"[1, 2, 3][-1]",
+			nil,
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := eval(tt.input)
+		integer, ok := tt.expected.(int)
+		if ok {
+			assertIntegerObject(t, evaluated, int64(integer))
+		} else {
+			assert.Equal(t, NIL, evaluated)
+		}
+	}
+}
+
+func TestIndexError(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{
+			"[3, 2, 1][\"3\"]",
+			"expected INTEGER as index for array, got STRING",
+		},
+		{
+			"1000[3]",
+			"type INTEGER doesn't support index operations",
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := eval(tt.input)
+		err, ok := evaluated.(*object.Error)
+		assert.True(t, ok)
+
+		assert.Equal(t, tt.expected, err.Message)
+	}
+}

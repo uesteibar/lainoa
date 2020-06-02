@@ -37,7 +37,9 @@ func TestNextToken(t *testing.T) {
 
 		# this is a comment
 		"test-string" # inline comment
-		let name = "unai esteibar";`
+		let name = "unai esteibar";
+
+		[1, 2]`
 
 	tests := []struct {
 		expectedType    token.TokenType
@@ -76,6 +78,8 @@ func TestNextToken(t *testing.T) {
 		{token.COMMENT, "this is a comment"},
 		{token.STRING, "test-string"}, {token.COMMENT, "inline comment"},
 		{token.LET, "let"}, {token.IDENT, "name"}, {token.ASSIGN, "="}, {token.STRING, "unai esteibar"}, {token.SEMICOLON, ";"},
+
+		{token.LBRACKET, "["}, {token.INT, "1"}, {token.COMMA, ","}, {token.INT, "2"}, {token.RBRACKET, "]"},
 	}
 
 	l := New(input)

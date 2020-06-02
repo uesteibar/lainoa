@@ -35,6 +35,10 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return evalIfExpression(node, env)
 	case *ast.AssignExpression:
 		return evalAssign(node, env)
+	case *ast.ArrayExpression:
+		return evalArray(node, env)
+	case *ast.IndexExpression:
+		return evalIndexOperation(node, env)
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: node.Value}
 	case *ast.StringLiteral:

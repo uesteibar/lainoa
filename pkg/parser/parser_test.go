@@ -707,3 +707,42 @@ func TestNil(t *testing.T) {
 	_, ok = let.Value.(*ast.NilLiteral)
 	assert.True(t, ok)
 }
+
+func TestArrays(t *testing.T) {
+	l := lexer.New(`[1, 2, "name"]`)
+	p := New(l)
+	program := p.ParseProgram()
+	assertNoErrors(t, p)
+
+	assert.Len(t, program.Statements, 1)
+
+	exp, ok := program.Statements[0].(*ast.ExpressionStatement)
+	assert.True(t, ok)
+	array, ok := exp.Expression.(*ast.ArrayExpression)
+	assert.True(t, ok)
+
+	assert.Len(t, array.Expressions, 3)
+	assertIntegerLiteral(t, array.Expressions[0], 1)
+	assertIntegerLiteral(t, array.Expressions[1], 2)
+
+	str, ok := array.Expressions[2].(*ast.StringLiteral)
+	assert.True(t, ok)
+	assert.Equal(t, "name", str.Value)
+}
+
+func TestIndexExpressions(t *testing.T) {
+	l := lexer.New(`array[1]`)
+	p := New(l)
+	program := p.ParseProgram()
+	assertNoErrors(t, p)
+
+	assert.Len(t, program.Statements, 1)
+
+	exp, ok := program.Statements[0].(*ast.ExpressionStatement)
+	assert.True(t, ok)
+	indexp, ok := exp.Expression.(*ast.IndexExpression)
+	assert.True(t, ok)
+
+	assertIdentifier(t, indexp.Left, "array")
+	assertIntegerLiteral(t, indexp.Index, 1)
+}

@@ -132,6 +132,20 @@ status(21) # => "adult"
 status(17) # => "little-adult"
 ```
 
+Arrays, because otherwise how would you build a ToDo app?
+
+```
+let shopping_list = [
+  "milk",
+  "cereals",
+  "bread"
+]
+
+puts(shopping_list[0]) # => "milk"
+puts(shopping_list[1]) # => "cereals"
+puts(shopping_list[2]) # => "bread"
+```
+
 Oh, you can use `;` if you want to do things inline, but they're not mandatory otherwise:
 
 ```

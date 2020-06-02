@@ -27,20 +27,6 @@ func evalFunctionCall(call *ast.CallExpression, env *object.Environment) object.
 	return applyFunction(fun, args)
 }
 
-func evalExpressions(exps []ast.Expression, env *object.Environment) ([]object.Object, *object.Error) {
-	var result []object.Object
-
-	for _, e := range exps {
-		evaluated := Eval(e, env)
-		if err, ok := evaluated.(*object.Error); ok {
-			return result, err
-		}
-		result = append(result, evaluated)
-	}
-
-	return result, nil
-}
-
 func applyFunction(fn object.Object, args []object.Object) object.Object {
 	switch fn := fn.(type) {
 
