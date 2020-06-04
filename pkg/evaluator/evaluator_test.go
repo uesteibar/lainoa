@@ -374,6 +374,23 @@ func TestFunctionCallErrors(t *testing.T) {
 	assert.Equal(t, "expected 4 to be a function, got INTEGER", errObj.Message)
 }
 
+func TestFunctionTooManyArgumentErrors(t *testing.T) {
+	evaluated := eval(`
+		let multiply = fun(num) {
+			let number = num
+
+			return number * 2
+		}
+
+		multiply(2, 2)
+	`)
+
+	errObj, ok := evaluated.(*object.Error)
+	assert.True(t, ok)
+
+	assert.Equal(t, "expected 1 arguments, got 2", errObj.Message)
+}
+
 func TestFunctionArgumentErrors(t *testing.T) {
 	evaluated := eval(`
 		let num = 2

@@ -37,6 +37,9 @@ func applyFunction(fn object.Object, args []object.Object) object.Object {
 		if len(args) < len(fn.Parameters) {
 			return curryFunction(fn, env, args)
 		}
+		if len(args) > len(fn.Parameters) {
+			return tooManyArgumentsError(args, fn.Parameters)
+		}
 
 		evaluated := Eval(fn.Body, env)
 		return unwrapReturnValue(evaluated)
@@ -47,6 +50,9 @@ func applyFunction(fn object.Object, args []object.Object) object.Object {
 		}
 		if len(args) < len(fn.ParametersLeft) {
 			return recurryFunction(fn, env, args)
+		}
+		if len(args) > len(fn.ParametersLeft) {
+			return tooManyArgumentsError(args, fn.ParametersLeft)
 		}
 
 		evaluated := Eval(fn.Fn.Body, env)
@@ -98,4 +104,8 @@ func unwrapReturnValue(obj object.Object) object.Object {
 	}
 
 	return obj
+}
+
+func tooManyArgumentsError(args []object.Object, parameters []*ast.Identifier) *object.Error {
+	return object.NewError("expected %d arguments, got %d", len(parameters), len(args))
 }
