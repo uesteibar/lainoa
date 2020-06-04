@@ -10,7 +10,7 @@ import (
 )
 
 func eval(input string) object.Object {
-	l := lexer.New(input)
+	l := lexer.New(input, "/path/to/file")
 	p := parser.New(l)
 	program := p.ParseProgram()
 	env := object.NewEnvironment()

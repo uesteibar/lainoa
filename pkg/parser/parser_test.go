@@ -10,6 +10,10 @@ import (
 	"github.com/uesteibar/lainoa/pkg/token"
 )
 
+func lex(input string) *lexer.Lexer {
+	return lexer.New(input, "/path/to/file")
+}
+
 func assertNoErrors(t *testing.T, p *Parser) {
 	assert.Len(t, p.Errors(), 0)
 }
@@ -76,7 +80,7 @@ func assertInfixExpression(
 }
 
 func TestParseLetStatements(t *testing.T) {
-	l := lexer.New(`
+	l := lex(`
 		let x = 5;
 		let y = 10;
 		let z = -10;
@@ -95,7 +99,7 @@ func TestParseLetStatements(t *testing.T) {
 }
 
 func TestParseLetStatementError(t *testing.T) {
-	l := lexer.New(`
+	l := lex(`
 		let 5;
 		let x = 10;
 		let x + 1;
@@ -107,12 +111,12 @@ func TestParseLetStatementError(t *testing.T) {
 
 	errors := p.Errors()
 	assert.Len(t, errors, 2)
-	assert.Equal(t, "expected next token to be IDENT, got INT instead", errors[0])
-	assert.Equal(t, "expected next token to be =, got + instead", errors[1])
+	assert.Equal(t, "/path/to/file:1 expected next token to be IDENT, got INT instead", errors[0].String())
+	assert.Equal(t, "/path/to/file:3 expected next token to be =, got + instead", errors[1].String())
 }
 
 func TestParseReturnStatements(t *testing.T) {
-	l := lexer.New(`
+	l := lex(`
 		return true;
 		return 1;
 	`)
@@ -135,7 +139,7 @@ func TestParseReturnStatements(t *testing.T) {
 }
 
 func TestIdentifierExpression(t *testing.T) {
-	l := lexer.New(`
+	l := lex(`
 		foo;
 	`)
 
@@ -152,7 +156,7 @@ func TestIdentifierExpression(t *testing.T) {
 }
 
 func TestIntegerExpression(t *testing.T) {
-	l := lexer.New(`
+	l := lex(`
 		550;
 	`)
 
@@ -169,7 +173,7 @@ func TestIntegerExpression(t *testing.T) {
 }
 
 func TestStringExpression(t *testing.T) {
-	l := lexer.New(`"unai"`)
+	l := lex(`"unai"`)
 
 	p := New(l)
 	program := p.ParseProgram()
@@ -197,7 +201,7 @@ func TestPrefixExpressions(t *testing.T) {
 	}
 
 	for _, tt := range prefixTests {
-		l := lexer.New(tt.input)
+		l := lex(tt.input)
 		p := New(l)
 		program := p.ParseProgram()
 		assertNoErrors(t, p)
@@ -214,7 +218,7 @@ func TestPrefixExpressions(t *testing.T) {
 }
 
 func TestPrefixExpressionsErrors(t *testing.T) {
-	l := lexer.New(`
+	l := lex(`
 		!5;
 		&10;
 	`)
@@ -225,7 +229,7 @@ func TestPrefixExpressionsErrors(t *testing.T) {
 
 	errors := p.Errors()
 	assert.Len(t, errors, 1)
-	assert.Equal(t, "prefix operation & not recognized", errors[0])
+	assert.Equal(t, "/path/to/file:2 prefix operation & not recognized", errors[0].String())
 }
 
 func TestInfixExpressions(t *testing.T) {
@@ -248,7 +252,7 @@ func TestInfixExpressions(t *testing.T) {
 	}
 
 	for _, tt := range infixTests {
-		l := lexer.New(tt.input)
+		l := lex(tt.input)
 		p := New(l)
 		program := p.ParseProgram()
 
@@ -264,7 +268,7 @@ func TestInfixExpressions(t *testing.T) {
 }
 
 func TestInfixExpressionsErrors(t *testing.T) {
-	l := lexer.New(`
+	l := lex(`
 		5 *;
 		5 $ a;
 		== 10;
@@ -276,9 +280,9 @@ func TestInfixExpressionsErrors(t *testing.T) {
 
 	errors := p.Errors()
 	assert.Len(t, errors, 3)
-	assert.Equal(t, "prefix operation ; not recognized", errors[0])
-	assert.Equal(t, "prefix operation $ not recognized", errors[1])
-	assert.Equal(t, "prefix operation == not recognized", errors[2])
+	assert.Equal(t, "/path/to/file:1 prefix operation ; not recognized", errors[0].String())
+	assert.Equal(t, "/path/to/file:2 prefix operation $ not recognized", errors[1].String())
+	assert.Equal(t, "/path/to/file:3 prefix operation == not recognized", errors[2].String())
 }
 
 func TestOperatorPrecedenceParsing(t *testing.T) {
@@ -357,7 +361,7 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		l := lexer.New(tt.input)
+		l := lex(tt.input)
 		p := New(l)
 		program := p.ParseProgram()
 		assertNoErrors(t, p)
@@ -395,7 +399,7 @@ func TestGroupedExpressionsParsing(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		l := lexer.New(tt.input)
+		l := lex(tt.input)
 		p := New(l)
 		program := p.ParseProgram()
 		assertNoErrors(t, p)
@@ -406,7 +410,7 @@ func TestGroupedExpressionsParsing(t *testing.T) {
 }
 
 func TestBooleanExpression(t *testing.T) {
-	l := lexer.New(`
+	l := lex(`
 		return true;
 		false;
 	`)
@@ -434,7 +438,7 @@ func TestBooleanExpression(t *testing.T) {
 }
 
 func TestIfExpression(t *testing.T) {
-	l := lexer.New(`if (x < y) { x }`)
+	l := lex(`if (x < y) { x }`)
 	p := New(l)
 	program := p.ParseProgram()
 	assertNoErrors(t, p)
@@ -462,7 +466,7 @@ func TestIfExpression(t *testing.T) {
 }
 
 func TestIfElseExpression(t *testing.T) {
-	l := lexer.New(`if (x < y) { x } else { y }`)
+	l := lex(`if (x < y) { x } else { y }`)
 	p := New(l)
 	program := p.ParseProgram()
 	assertNoErrors(t, p)
@@ -496,7 +500,7 @@ func TestIfElseExpression(t *testing.T) {
 }
 
 func TestIfElseExpressionsErrors(t *testing.T) {
-	l := lexer.New(`
+	l := lex(`
 		if (x < y) {
 			x
 		}
@@ -510,12 +514,12 @@ func TestIfElseExpressionsErrors(t *testing.T) {
 
 	errors := p.Errors()
 	assert.Len(t, errors, 2)
-	assert.Equal(t, "expected next token to be {, got IDENT instead", errors[0])
-	assert.Equal(t, "expected } at the end of the block, got EOF instead", errors[1])
+	assert.Equal(t, "/path/to/file:4 expected next token to be {, got IDENT instead", errors[0].String())
+	assert.Equal(t, "/path/to/file:6 expected } at the end of the block, got EOF instead", errors[1].String())
 }
 
 func TestFunctionExpression(t *testing.T) {
-	l := lexer.New(`
+	l := lex(`
 		fun(a, b) {
 			a + b;
 		}
@@ -543,15 +547,15 @@ func TestFunctionExpression(t *testing.T) {
 }
 
 func TestFunctionErrors(t *testing.T) {
-	l := lexer.New(`fun(1, b) { a + b; }`)
+	l := lex(`fun(1, b) { a + b; }`)
 	p := New(l)
 	p.ParseProgram()
 
 	errors := p.Errors()
 	assert.Len(t, errors, 1)
 	assert.Equal(t,
-		"Function parameters can only be identifiers, found '1' instead",
-		errors[0],
+		"/path/to/file:1 Function parameters can only be identifiers, found '1' instead",
+		errors[0].String(),
 	)
 }
 
@@ -566,7 +570,7 @@ func TestFunctionParameterParsing(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		l := lexer.New(tt.input)
+		l := lex(tt.input)
 		p := New(l)
 		program := p.ParseProgram()
 		assertNoErrors(t, p)
@@ -584,7 +588,7 @@ func TestFunctionParameterParsing(t *testing.T) {
 func TestCallExpressionParsing(t *testing.T) {
 	input := "add(1, 2 * 3, 4 + 5);"
 
-	l := lexer.New(input)
+	l := lex(input)
 	p := New(l)
 	program := p.ParseProgram()
 	assertNoErrors(t, p)
@@ -607,22 +611,22 @@ func TestCallExpressionParsing(t *testing.T) {
 }
 
 func TestCallErrors(t *testing.T) {
-	l := lexer.New("add(1, 2 * 3, 4 + 5;")
+	l := lex("add(1, 2 * 3, 4 + 5;")
 	p := New(l)
 	p.ParseProgram()
 
 	errors := p.Errors()
 	assert.Len(t, errors, 1)
 	assert.Equal(t,
-		"expected next token to be ), got ; instead",
-		errors[0],
+		"/path/to/file:1 expected next token to be ), got ; instead",
+		errors[0].String(),
 	)
 }
 
 func TestDirectCallExpressionParsing(t *testing.T) {
 	input := "fun(a, b) { a + b }(1, 2 * 3, 4 + 5);"
 
-	l := lexer.New(input)
+	l := lex(input)
 	p := New(l)
 	program := p.ParseProgram()
 	assertNoErrors(t, p)
@@ -647,7 +651,7 @@ func TestDirectCallExpressionParsing(t *testing.T) {
 func TestAssignExpressionParsing(t *testing.T) {
 	input := "a = 1;"
 
-	l := lexer.New(input)
+	l := lex(input)
 	p := New(l)
 	program := p.ParseProgram()
 	assertNoErrors(t, p)
@@ -682,7 +686,7 @@ func TestComments(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		l := lexer.New(tt.input)
+		l := lex(tt.input)
 		p := New(l)
 		program := p.ParseProgram()
 		assertNoErrors(t, p)
@@ -694,7 +698,7 @@ func TestComments(t *testing.T) {
 }
 
 func TestNil(t *testing.T) {
-	l := lexer.New(`let a = nil`)
+	l := lex(`let a = nil`)
 	p := New(l)
 	program := p.ParseProgram()
 	assertNoErrors(t, p)
@@ -709,7 +713,7 @@ func TestNil(t *testing.T) {
 }
 
 func TestArrays(t *testing.T) {
-	l := lexer.New(`[1, 2, "name"]`)
+	l := lex(`[1, 2, "name"]`)
 	p := New(l)
 	program := p.ParseProgram()
 	assertNoErrors(t, p)
@@ -731,7 +735,7 @@ func TestArrays(t *testing.T) {
 }
 
 func TestIndexExpressions(t *testing.T) {
-	l := lexer.New(`array[1]`)
+	l := lex(`array[1]`)
 	p := New(l)
 	program := p.ParseProgram()
 	assertNoErrors(t, p)

@@ -2,9 +2,15 @@ package token
 
 type TokenType string
 
+type Metadata struct {
+	Line int
+	File string
+}
+
 type Token struct {
-	Type    TokenType
-	Literal string
+	Type     TokenType
+	Literal  string
+	Metadata Metadata
 }
 
 const (

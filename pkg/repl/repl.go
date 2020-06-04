@@ -35,7 +35,7 @@ func Start() {
 			return
 		}
 
-		l := lexer.New(line)
+		l := lexer.New(line, "repl")
 		p := parser.New(l)
 		program := p.ParseProgram()
 
@@ -43,7 +43,7 @@ func Start() {
 			fmt.Println("Oops! Something is wrong here:")
 			fmt.Println("  parser errors:")
 			for _, err := range p.Errors() {
-				fmt.Println(fmt.Sprintf("- %s\n", err))
+				fmt.Println(fmt.Sprintf("- %s\n", err.String()))
 			}
 		} else {
 			evaluated := evaluator.Eval(program, env)

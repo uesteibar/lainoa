@@ -6,14 +6,17 @@ import (
 
 type Lexer struct {
 	input        string
+	filename     string
 	position     int
 	readPosition int
+	curLine      int
 	ch           byte
 }
 
-func New(input string) *Lexer {
-	l := &Lexer{input: input}
+func New(input string, filename string) *Lexer {
+	l := &Lexer{input: input, filename: filename}
 	l.readChar()
+	l.curLine = 1
 
 	return l
 }
@@ -26,6 +29,10 @@ func (l *Lexer) readChar() {
 	}
 	l.position = l.readPosition
 	l.readPosition++
+
+	if l.isLineBreak() {
+		l.curLine++
+	}
 }
 
 func (l *Lexer) peekNextChar() byte {
@@ -45,8 +52,9 @@ func (l *Lexer) NextToken() (t token.Token) {
 			l.readChar()
 			t.Literal = "=="
 			t.Type = token.EQ
+			t.Metadata = l.metadata()
 		} else {
-			t = newToken(token.ASSIGN, l.ch)
+			t = l.newToken(token.ASSIGN, l.ch)
 		}
 
 		l.readChar()
@@ -55,66 +63,71 @@ func (l *Lexer) NextToken() (t token.Token) {
 			l.readChar()
 			t.Literal = "!="
 			t.Type = token.NOT_EQ
+			t.Metadata = l.metadata()
 		} else {
-			t = newToken(token.BANG, l.ch)
+			t = l.newToken(token.BANG, l.ch)
 		}
 		l.readChar()
 	case ',':
-		t = newToken(token.COMMA, l.ch)
+		t = l.newToken(token.COMMA, l.ch)
 		l.readChar()
 	case ';':
-		t = newToken(token.SEMICOLON, l.ch)
+		t = l.newToken(token.SEMICOLON, l.ch)
 		l.readChar()
 	case '(':
-		t = newToken(token.LPAREN, l.ch)
+		t = l.newToken(token.LPAREN, l.ch)
 		l.readChar()
 	case ')':
-		t = newToken(token.RPAREN, l.ch)
+		t = l.newToken(token.RPAREN, l.ch)
 		l.readChar()
 	case '{':
-		t = newToken(token.LBRACE, l.ch)
+		t = l.newToken(token.LBRACE, l.ch)
 		l.readChar()
 	case '}':
-		t = newToken(token.RBRACE, l.ch)
+		t = l.newToken(token.RBRACE, l.ch)
 		l.readChar()
 	case '[':
-		t = newToken(token.LBRACKET, l.ch)
+		t = l.newToken(token.LBRACKET, l.ch)
 		l.readChar()
 	case ']':
-		t = newToken(token.RBRACKET, l.ch)
+		t = l.newToken(token.RBRACKET, l.ch)
 		l.readChar()
 	case '+':
-		t = newToken(token.PLUS, l.ch)
+		t = l.newToken(token.PLUS, l.ch)
 		l.readChar()
 	case '-':
-		t = newToken(token.MINUS, l.ch)
+		t = l.newToken(token.MINUS, l.ch)
 		l.readChar()
 	case '*':
-		t = newToken(token.ASTERISK, l.ch)
+		t = l.newToken(token.ASTERISK, l.ch)
 		l.readChar()
 	case '/':
-		t = newToken(token.SLASH, l.ch)
+		t = l.newToken(token.SLASH, l.ch)
 		l.readChar()
 	case '<':
-		t = newToken(token.LT, l.ch)
+		t = l.newToken(token.LT, l.ch)
 		l.readChar()
 	case '>':
-		t = newToken(token.GT, l.ch)
+		t = l.newToken(token.GT, l.ch)
 		l.readChar()
 	case '"':
+		t.Metadata = l.metadata()
 		t.Literal = l.readString()
 		t.Type = token.STRING
 		l.readChar()
 	case '#':
+		t.Metadata = l.metadata()
 		t.Literal = l.readComment()
 		t.Type = token.COMMENT
 		l.readChar()
 	case 0:
+		t.Metadata = l.metadata()
 		t.Literal = ""
 		t.Type = token.EOF
 
 		l.readChar()
 	default:
+		t.Metadata = l.metadata()
 		if isLetter(l.ch) {
 			t.Literal = l.readIdentifier()
 			t.Type = token.LookupIdentType(t.Literal)
@@ -122,7 +135,7 @@ func (l *Lexer) NextToken() (t token.Token) {
 			t.Type = token.INT
 			t.Literal = l.readNumber()
 		} else {
-			t = newToken(token.ILLEGAL, l.ch)
+			t = l.newToken(token.ILLEGAL, l.ch)
 
 			l.readChar()
 		}
@@ -132,9 +145,13 @@ func (l *Lexer) NextToken() (t token.Token) {
 }
 
 func (l *Lexer) skipWhitespace() {
-	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
+	for l.ch == ' ' || l.ch == '\t' || l.isLineBreak() || l.ch == '\r' {
 		l.readChar()
 	}
+}
+
+func (l *Lexer) isLineBreak() bool {
+	return l.ch == '\n'
 }
 
 func (l *Lexer) readString() string {
@@ -176,8 +193,12 @@ func (l *Lexer) readComment() string {
 	return l.input[initialPosition:l.position]
 }
 
-func newToken(tokenType token.TokenType, ch byte) token.Token {
-	return token.Token{Type: tokenType, Literal: string(ch)}
+func (l *Lexer) newToken(tokenType token.TokenType, ch byte) token.Token {
+	return token.Token{Type: tokenType, Literal: string(ch), Metadata: l.metadata()}
+}
+
+func (l *Lexer) metadata() token.Metadata {
+	return token.Metadata{Line: l.curLine, File: l.filename}
 }
 
 func isLetter(ch byte) bool {

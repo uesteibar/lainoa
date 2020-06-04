@@ -17,7 +17,7 @@ func Start(filepath string) {
 		fmt.Println("Error reading file", err)
 	}
 
-	l := lexer.New(string(data))
+	l := lexer.New(string(data), filepath)
 	p := parser.New(l)
 	program := p.ParseProgram()
 
@@ -25,7 +25,7 @@ func Start(filepath string) {
 		fmt.Println("Oops! Something is wrong here:")
 		fmt.Println("  parser errors:")
 		for _, err := range p.Errors() {
-			fmt.Println(fmt.Sprintf("- %s\n", err))
+			fmt.Println(fmt.Sprintf("- %s\n", err.String()))
 		}
 	} else {
 		env := object.NewEnvironment()

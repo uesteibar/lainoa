@@ -1,7 +1,9 @@
 package parser
 
 import (
+	"bytes"
 	"fmt"
+	"strconv"
 
 	"github.com/uesteibar/lainoa/pkg/ast"
 	"github.com/uesteibar/lainoa/pkg/lexer"
@@ -38,13 +40,31 @@ type (
 	infixParseFn  func(ast.Expression) ast.Expression
 )
 
+type Error struct {
+	Message string
+	Line    int
+	File    string
+}
+
+func (e *Error) String() string {
+	var out bytes.Buffer
+
+	out.WriteString(e.File)
+	out.WriteString(":")
+	out.WriteString(strconv.Itoa(e.Line))
+	out.WriteString(" ")
+	out.WriteString(e.Message)
+
+	return out.String()
+}
+
 type Parser struct {
 	l *lexer.Lexer
 
 	curToken  token.Token
 	peekToken token.Token
 
-	errors []string
+	errors []Error
 
 	prefixParseFns map[token.TokenType]prefixParseFn
 	infixParseFns  map[token.TokenType]infixParseFn
@@ -176,7 +196,7 @@ func (p *Parser) expectPeek(t token.TokenType) bool {
 	return false
 }
 
-func (p *Parser) Errors() []string {
+func (p *Parser) Errors() []Error {
 	return p.errors
 }
 
@@ -185,5 +205,9 @@ func (p *Parser) addPeekError(t token.TokenType) {
 }
 
 func (p *Parser) addError(msg string) {
-	p.errors = append(p.errors, msg)
+	p.errors = append(p.errors, p.newError(msg))
+}
+
+func (p *Parser) newError(msg string) Error {
+	return Error{Message: msg, File: p.curToken.Metadata.File, Line: p.curToken.Metadata.Line}
 }
